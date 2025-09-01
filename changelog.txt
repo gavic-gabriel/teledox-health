@@ -1,8 +1,15 @@
 CHANGELOG - TeleDox Health Plugin
 ====================================
 
-Version 1.0.28 (Current)
+Version 1.1.01 (Current)
 ------------------------
+- FEATURE: Started development of API connection system
+- Created build branch for feature development and testing
+- Planning phase for external API integration and data exchange
+- Updated plugin version to reflect new development phase
+
+Version 1.0.28
+--------------
 - CRITICAL FIX: Resolved PHP Warnings "Array to string conversion" when calling array_unique()
 - Root Cause: WooCommerce stores notices as complex array structures, not simple strings
 - Solution: Implemented message validation and filtering before array_unique() calls
