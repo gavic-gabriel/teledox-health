@@ -10,6 +10,7 @@ Version 1.0.28 (Current)
 - Enhanced logging to track notices processing and identify data structure issues
 - Added detailed code documentation explaining the fix and future considerations
 - Updated CSS and JS versions to 1.0.28 for cache busting
+- PROJECT: Connected plugin to GitHub repository for version control and collaboration
 
 Version 1.0.27
 ---------------
