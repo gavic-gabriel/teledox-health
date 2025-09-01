@@ -1,0 +1,13 @@
+/* TeleDox Health Plugin Styles */
+.teledox-health-container {
+    /* Basic styling placeholder */
+    margin: 0;
+    padding: 0;
+}
+
+.teledox-health-settings {
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}

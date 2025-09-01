@@ -1,0 +1,139 @@
+CHANGELOG - TeleDox Health Plugin
+====================================
+
+Version 1.0.28 (Current)
+------------------------
+- CRITICAL FIX: Resolved PHP Warnings "Array to string conversion" when calling array_unique()
+- Root Cause: WooCommerce stores notices as complex array structures, not simple strings
+- Solution: Implemented message validation and filtering before array_unique() calls
+- Added comprehensive debugging with separate 'debug' and 'error' components
+- Enhanced logging to track notices processing and identify data structure issues
+- Added detailed code documentation explaining the fix and future considerations
+- Updated CSS and JS versions to 1.0.28 for cache busting
+
+Version 1.0.27
+---------------
+- Changed debugging component from 'cart' to 'debug' for better log organization
+- Separated enhanced debugging messages from regular cart functionality logs
+- Improved log readability and troubleshooting efficiency
+
+Version 1.0.26
+---------------
+- Implemented comprehensive fix for array_unique PHP warnings
+- Added message validation to filter out non-string values from WooCommerce notices
+- Enhanced safety checks before processing notices with array_unique()
+- Updated CSS and JS versions to 1.0.26
+
+Version 1.0.25
+---------------
+- Added enhanced debugging to track down array_unique warning source
+- Implemented comprehensive logging for notices processing
+- Added backtrace information to identify function call origins
+- Updated CSS and JS versions to 1.0.25
+
+Version 1.0.24
+---------------
+- Added custom error handler to catch PHP warnings
+- Implemented teledox_safe_log(), teledox_safe_string(), and teledox_safe_array_keys() utilities
+- Enhanced type safety for all logging operations
+- Updated CSS and JS versions to 1.0.24
+
+Version 1.0.23
+---------------
+- Fixed array to string conversion warnings in cart functions
+- Added comprehensive type checking for all logged data
+- Implemented safe logging utilities for robust error handling
+- Updated CSS and JS versions to 1.0.23
+
+Version 1.0.22
+---------------
+- Fixed duplicate validation messages appearing when adding products to cart
+- Implemented message deduplication system for WooCommerce notices
+- Added hooks to prevent duplicate "You cannot add another..." messages
+- Updated CSS and JS versions to 1.0.22
+
+Version 1.0.21
+---------------
+- Fixed homepage redirect issue when adding products to cart
+- Implemented multi-layered redirect protection system
+- Added filters at different priorities to catch all redirect attempts
+- Added safety net functions to block redirects on product pages
+- Updated CSS and JS versions to 1.0.21
+
+Version 1.0.20
+---------------
+- Fixed double message issue when removing items from cart
+- Implemented duplicate message prevention for cart item removal
+- Added comprehensive logging for cart operations
+- Updated CSS and JS versions to 1.0.20
+
+Version 1.0.19
+---------------
+- Fixed cart total showing on all menu items
+- Implemented proper cart count display in navigation menu
+- Added cart link integration with WooCommerce cart functionality
+- Updated CSS and JS versions to 1.0.19
+
+Version 1.0.18
+---------------
+- Fixed browser confirmation dialog when removing cart items
+- Implemented seamless cart item removal without user prompts
+- Enhanced user experience for cart management
+- Updated CSS and JS versions to 1.0.18
+
+Version 1.0.17
+---------------
+- Implemented custom cart layout integration with WooCommerce
+- Created custom cart template override system
+- Added AJAX functionality for dynamic cart updates
+- Implemented quantity update and item removal via AJAX
+- Added custom cart shortcode [teledox_cart]
+- Updated CSS and JS versions to 1.0.17
+
+Version 1.0.16
+---------------
+- Created base API connection system for external API integration
+- Implemented staging/production environment handling
+- Added API key management and configuration
+- Implemented HTTP request handling with retry logic
+- Added comprehensive API logging and error handling
+- Updated CSS and JS versions to 1.0.16
+
+Version 1.0.15
+---------------
+- Fixed plugin activation issues with file inclusion checks
+- Added file_exists() validation for all plugin includes
+- Moved msg_teledox_health() function definition before usage
+- Reordered API constant definitions for proper initialization
+- Updated CSS and JS versions to 1.0.15
+
+Version 1.0.14
+---------------
+- Implemented external logging system using msg_teledox_health() function
+- Replaced all native WordPress logging with custom external logger
+- Added comprehensive logging throughout plugin functionality
+- Updated CSS and JS versions to 1.0.14
+
+Version 1.0.13
+---------------
+- Fixed plugin activation fatal errors
+- Corrected file inclusion order and dependency management
+- Added proper initialization guards and error handling
+- Updated CSS and JS versions to 1.0.13
+
+Version 1.0.12
+---------------
+- Initial plugin structure and basic functionality
+- Created admin settings and configuration system
+- Implemented basic WordPress plugin framework
+- Added WooCommerce integration hooks and filters
+- Created custom cart functionality foundation
+- Updated CSS and JS versions to 1.0.12
+
+Version 1.0.01 (Initial)
+------------------------
+- Initial plugin creation for TeleDox Health project
+- Basic plugin structure with activation/deactivation hooks
+- WordPress integration and admin menu setup
+- Foundation for WooCommerce and Elementor Pro integration
+- Initial API settings and configuration framework    
