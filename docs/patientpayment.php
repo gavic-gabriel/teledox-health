@@ -283,4 +283,4 @@ Previous paginated page
 </div>
 </div>
 </div>
-<style>ul {list-style-type: none;<span data-mce-type="bookmark" style="display: inline-block; width: 0px; overflow: hidden; line-height: 0;"}</style>
+<style>ul {list-style-type: none;}</style>
