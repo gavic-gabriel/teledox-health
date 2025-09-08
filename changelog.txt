@@ -1,7 +1,27 @@
 CHANGELOG - TeleDox Health Plugin
 ====================================
 
-Version 1.1.01 (Current)
+Version 1.1.02 (Current)
+------------------------
+- ENHANCEMENT: Added Patient Payment Logs Integration
+- Implemented comprehensive patient payment logs API integration (/api/patient_payment_log)
+- Added doctor filtering for manageable payment data display
+- Created data analysis summary with payment methods, amounts, actions, and sources
+- Added pagination detection and page size control (50 entries per request)
+- Implemented collapsible interface for efficient data presentation
+- ENHANCEMENT: Standardized Test Section Headers
+- Updated all test sections to use consistent "Test X: Description" format
+- Added HTTP method and API endpoint display for each test
+- Improved professional appearance with standardized formatting
+- Enhanced user experience with clear API endpoint identification
+- ENHANCEMENT: Enhanced User Interface and Data Display
+- Made all data sections collapsible for better organization
+- Added professional styling with consistent design patterns
+- Improved data analysis and summary displays across all test sections
+- Enhanced error handling and pagination information display
+- Updated CSS and JS versions to 1.1.02 for cache busting
+
+Version 1.1.01
 ------------------------
 - FEATURE: Complete DrChrono API Integration System
 - Added OAuth2 authentication flow with secure token management

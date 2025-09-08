@@ -24,7 +24,8 @@ function teledox_quick_test_drchrono() {
     echo "<h3>Testing Token: " . esc_html(substr($access_token, 0, 20)) . "...</h3>\n";
     
     // Test 1: Get current user
-    echo "<h4>Test 1: GET /api/users/current</h4>\n";
+    echo "<h4>Test 1: Get Current User</h4>\n";
+    echo "<code>GET /api/users/current</code><br><br>\n";
     
     $response = wp_remote_get($api_base_url . '/api/users/current', array(
         'headers' => array(
@@ -59,7 +60,8 @@ function teledox_quick_test_drchrono() {
     echo "<br>\n";
     
     // Test 2: Get offices
-    echo "<h4>Test 2: GET /api/offices</h4>\n";
+    echo "<h4>Test 2: Get Offices</h4>\n";
+    echo "<code>GET /api/offices</code><br><br>\n";
     
     $response = wp_remote_get($api_base_url . '/api/offices', array(
         'headers' => array(
@@ -95,7 +97,8 @@ function teledox_quick_test_drchrono() {
     echo "<br>\n";
     
     // Test 3: Get doctors
-    echo "<h4>Test 3: GET /api/doctors</h4>\n";
+    echo "<h4>Test 3: Get Doctors</h4>\n";
+    echo "<code>GET /api/doctors</code><br><br>\n";
     
     $response = wp_remote_get($api_base_url . '/api/doctors', array(
         'headers' => array(
@@ -131,7 +134,8 @@ function teledox_quick_test_drchrono() {
     echo "<br>\n";
     
     // Test 4: Get patients (first 5)
-    echo "<h4>Test 4: GET /api/patients (first 5)</h4>\n";
+    echo "<h4>Test 4: Get Patients</h4>\n";
+    echo "<code>GET /api/patients (first 5)</code><br><br>\n";
     
     $response = wp_remote_get($api_base_url . '/api/patients?page_size=5', array(
         'headers' => array(
@@ -168,6 +172,7 @@ function teledox_quick_test_drchrono() {
     
     // Test 5: Check Availability
     echo "<h4>Test 5: Check Availability</h4>\n";
+    echo "<code>GET /api/availability</code><br><br>\n";
     
     // Add CSS for the calendar popup
     echo "<style>
@@ -336,6 +341,7 @@ function teledox_quick_test_drchrono() {
     
     // Test 6: Get Billing Profiles
     echo "<h4>Test 6: Get Billing Profiles</h4>\n";
+    echo "<code>GET /api/billing_profiles</code><br><br>\n";
     
     $response = wp_remote_get($api_base_url . '/api/billing_profiles', array(
         'headers' => array(
@@ -462,6 +468,7 @@ function teledox_quick_test_drchrono() {
     
     // Test 7: Get Consent Forms
     echo "<h4>Test 7: Get Consent Forms</h4>\n";
+    echo "<code>GET /api/consent_forms</code><br><br>\n";
     
     $response = wp_remote_get($api_base_url . '/api/consent_forms', array(
         'headers' => array(
@@ -504,6 +511,125 @@ function teledox_quick_test_drchrono() {
             echo "❌ <strong>Failed</strong><br>\n";
             echo "Response: " . esc_html($body) . "<br>\n";
         }
+    }
+    
+    echo "<br>\n";
+    
+    // Test 8: Get Patient Payment Logs
+    echo "<h4>Test 8: Get Patient Payment Logs</h4>\n";
+    echo "<code>GET /api/patient_payment_log</code><br><br>\n";
+    
+    // Get doctor ID from the API class
+    $drchrono_api = new TeleDox_DrChrono_API();
+    $doctor_id = $drchrono_api->get_drchrono_doctor_id();
+    
+    if ($doctor_id) {
+        $payment_url = $api_base_url . '/api/patient_payment_log?doctor=' . $doctor_id . '&page_size=50';
+        
+        $response = wp_remote_get($payment_url, array(
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $access_token,
+                'Content-Type' => 'application/json',
+            ),
+            'timeout' => 30,
+        ));
+        
+        if (is_wp_error($response)) {
+            echo "❌ <strong>Request failed</strong><br>\n";
+            echo "Error: " . esc_html($response->get_error_message()) . "<br>\n";
+        } else {
+            $response_code = wp_remote_retrieve_response_code($response);
+            $body = wp_remote_retrieve_body($response);
+            $data = json_decode($body, true);
+            
+            echo "Response Code: " . esc_html($response_code) . "<br>\n";
+            echo "Doctor ID Filter: " . esc_html($doctor_id) . "<br>\n";
+            
+            if ($response_code === 200 && $data) {
+                $count = isset($data['results']) ? count($data['results']) : 0;
+                echo "✅ <strong>SUCCESS!</strong> Found {$count} payment log entries<br>\n";
+                
+                // Show pagination info
+                if (isset($data['next']) && $data['next']) {
+                    echo "📄 <strong>Pagination:</strong> More results available (next page exists)<br>\n";
+                }
+                if (isset($data['previous']) && $data['previous']) {
+                    echo "📄 <strong>Pagination:</strong> Previous page exists<br>\n";
+                }
+                
+                if ($count > 0) {
+                    echo "<strong>Payment Log Summary:</strong><br>\n";
+                    echo "<details style=\"margin-top: 10px;\">\n";
+                    echo "<summary style=\"cursor: pointer; font-weight: bold; padding: 5px; background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 3px;\">Click to view payment log summary</summary>\n";
+                    echo "<div style=\"margin-top: 10px; padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 3px;\">\n";
+                    
+                    // Analyze the data to provide a summary
+                    $payment_methods = array();
+                    $total_amount = 0;
+                    $actions = array();
+                    $sources = array();
+                    
+                    foreach ($data['results'] as $payment) {
+                        // Count payment methods
+                        if (isset($payment['payment_method'])) {
+                            $method = $payment['payment_method'];
+                            $payment_methods[$method] = ($payment_methods[$method] ?? 0) + 1;
+                        }
+                        
+                        // Sum total amounts
+                        if (isset($payment['amount'])) {
+                            $total_amount += floatval($payment['amount']);
+                        }
+                        
+                        // Count actions
+                        if (isset($payment['action'])) {
+                            $action = $payment['action'];
+                            $actions[$action] = ($actions[$action] ?? 0) + 1;
+                        }
+                        
+                        // Count sources
+                        if (isset($payment['source'])) {
+                            $source = $payment['source'];
+                            $sources[$source] = ($sources[$source] ?? 0) + 1;
+                        }
+                    }
+                    
+                    echo "<strong>Data Analysis Summary:</strong><br>\n";
+                    echo "• Total Payment Entries: {$count}<br>\n";
+                    echo "• Total Amount: $" . number_format($total_amount, 2) . "<br>\n";
+                    
+                    if (!empty($payment_methods)) {
+                        echo "• Payment Methods:<br>\n";
+                        foreach ($payment_methods as $method => $count) {
+                            echo "&nbsp;&nbsp;&nbsp;- {$method}: {$count} entries<br>\n";
+                        }
+                    }
+                    
+                    if (!empty($actions)) {
+                        echo "• Actions:<br>\n";
+                        foreach ($actions as $action => $count) {
+                            echo "&nbsp;&nbsp;&nbsp;- {$action}: {$count} entries<br>\n";
+                        }
+                    }
+                    
+                    if (!empty($sources)) {
+                        echo "• Sources:<br>\n";
+                        foreach ($sources as $source => $count) {
+                            echo "&nbsp;&nbsp;&nbsp;- {$source}: {$count} entries<br>\n";
+                        }
+                    }
+                    
+                    echo "<br><em>Note: Full payment log data available but not displayed to keep interface manageable.</em><br>\n";
+                    echo "</div>\n";
+                    echo "</details>\n";
+                }
+            } else {
+                echo "❌ <strong>Failed</strong><br>\n";
+                echo "Response: " . esc_html($body) . "<br>\n";
+            }
+        }
+    } else {
+        echo "❌ <strong>Failed</strong> - No doctor ID available<br>\n";
     }
     
     echo "<br>\n";
