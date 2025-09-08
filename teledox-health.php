@@ -116,3 +116,53 @@ if (file_exists(dirname(__FILE__) . '/admin/api-settings.php')) {
     msg_teledox_health('API settings file not found', 'error');
 }
 
+// DrChrono Integration
+if (file_exists(dirname(__FILE__) . '/includes/drchrono-api.php')) {
+    include_once dirname(__FILE__) . '/includes/drchrono-api.php';
+    msg_teledox_health('DrChrono API file loaded successfully', 'plugin');
+} else {
+    msg_teledox_health('DrChrono API file not found', 'error');
+}
+
+if (file_exists(dirname(__FILE__) . '/includes/drchrono-auth.php')) {
+    include_once dirname(__FILE__) . '/includes/drchrono-auth.php';
+    msg_teledox_health('DrChrono Auth file loaded successfully', 'plugin');
+} else {
+    msg_teledox_health('DrChrono Auth file not found', 'error');
+}
+
+if (file_exists(dirname(__FILE__) . '/includes/drchrono-webhook.php')) {
+    include_once dirname(__FILE__) . '/includes/drchrono-webhook.php';
+    msg_teledox_health('DrChrono Webhook file loaded successfully', 'plugin');
+} else {
+    msg_teledox_health('DrChrono Webhook file not found', 'error');
+}
+
+if (file_exists(dirname(__FILE__) . '/includes/drchrono-test.php')) {
+    include_once dirname(__FILE__) . '/includes/drchrono-test.php';
+    msg_teledox_health('DrChrono Test file loaded successfully', 'plugin');
+} else {
+    msg_teledox_health('DrChrono Test file not found', 'error');
+}
+
+if (file_exists(dirname(__FILE__) . '/includes/drchrono-mock.php')) {
+    include_once dirname(__FILE__) . '/includes/drchrono-mock.php';
+    msg_teledox_health('DrChrono Mock file loaded successfully', 'plugin');
+} else {
+    msg_teledox_health('DrChrono Mock file not found', 'error');
+}
+
+if (file_exists(dirname(__FILE__) . '/includes/drchrono-postman-test.php')) {
+    include_once dirname(__FILE__) . '/includes/drchrono-postman-test.php';
+    msg_teledox_health('DrChrono Postman Test file loaded successfully', 'plugin');
+} else {
+    msg_teledox_health('DrChrono Postman Test file not found', 'error');
+}
+
+if (file_exists(dirname(__FILE__) . '/includes/drchrono-quick-test.php')) {
+    include_once dirname(__FILE__) . '/includes/drchrono-quick-test.php';
+    msg_teledox_health('DrChrono Quick Test file loaded successfully', 'plugin');
+} else {
+    msg_teledox_health('DrChrono Quick Test file not found', 'error');
+}
+

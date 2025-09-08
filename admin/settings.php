@@ -136,6 +136,14 @@ function teledox_settings_page() {
             </table>
             <?php submit_button(); ?>
         </form>
+        
+        <!-- DrChrono Integration Section -->
+        <?php
+        if (class_exists('TeleDox_DrChrono_Auth')) {
+            $drchrono_auth = new TeleDox_DrChrono_Auth();
+            $drchrono_auth->render_connection_interface();
+        }
+        ?>
     </div>
     <?php
 }
