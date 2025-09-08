@@ -16,6 +16,30 @@ Version 1.1.01 (Current)
 - Added support for offices, doctors, patients, and appointments endpoints
 - Implemented rate limiting and pagination handling
 - Created production-ready integration with security best practices
+- ENHANCEMENT: Added Doctor Availability Check Feature
+- Implemented calendar popup interface for date selection
+- Added duration selector (15, 30, 45, 60 minutes) for appointment slots
+- Created AJAX handler for real-time availability API calls
+- Added responsive modal design with professional styling
+- Integrated with DrChrono availability endpoint (/api/availability)
+- ENHANCEMENT: Added Billing Profiles Integration
+- Implemented comprehensive billing profiles API integration (/api/billing_profiles)
+- Added detailed parsing of CPT codes, HCPCS codes, and custom procedure codes
+- Created display for pricing, quantities, modifiers, ICD pointers, and NDC codes
+- Added collapsible interface for better data organization
+- ENHANCEMENT: Added Consent Forms Integration
+- Implemented consent forms API integration (/api/consent_forms)
+- Added summary display with title, ID, order, mandatory status, and dates
+- Created collapsible interface for efficient data presentation
+- ENHANCEMENT: Updated API Connection Status Page
+- Modified admin API settings page to show accurate DrChrono connection status
+- Added DrChrono-specific information display (User ID, Username, Doctor ID)
+- Updated test connection functionality to use DrChrono API endpoints
+- Added DrChrono-specific styling and information sections
+- IMPROVEMENT: Enhanced User Interface
+- Made billing profiles and consent forms sections collapsible for better UX
+- Added professional styling with consistent design patterns
+- Improved data organization and readability across all test sections
 - FEATURE: Started development of API connection system
 - Created build branch for feature development and testing
 - Planning phase for external API integration and data exchange

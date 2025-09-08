@@ -266,4 +266,5 @@ class TeleDox_DrChrono_Mock {
 
 // Initialize mock functionality
 $teledox_drchrono_mock = new TeleDox_DrChrono_Mock();
-add_action('admin_menu', array($teledox_drchrono_mock, 'add_mock_menu'));
+// Temporarily hidden - uncomment when needed for testing
+// add_action('admin_menu', array($teledox_drchrono_mock, 'add_mock_menu'));

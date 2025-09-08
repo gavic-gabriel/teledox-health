@@ -33,63 +33,60 @@ function teledox_api_settings_page() {
         teledox_handle_api_test();
     }
     
-    // Get API status
-    $api_status = teledox_get_api_status();
-    $api = teledox_get_api();
+    // Get DrChrono API status
+    $drchrono_api = new TeleDox_DrChrono_API();
+    $drchrono_connected = $drchrono_api->is_connected();
+    $drchrono_user_id = $drchrono_api->get_drchrono_user_id();
+    $drchrono_username = $drchrono_api->get_drchrono_username();
+    $drchrono_doctor_id = $drchrono_api->get_drchrono_doctor_id();
     
     ?>
     <div class="wrap">
         <h1>TeleDox Health - API Connection</h1>
         
         <div class="teledox-api-status">
-            <h2>API Connection Status</h2>
+            <h2>DrChrono API Connection Status</h2>
             
-            <?php if (isset($api_status['error'])): ?>
-                <div class="notice notice-error">
-                    <p><strong>Error:</strong> <?php echo esc_html($api_status['error']); ?></p>
+            <?php if (!$drchrono_connected): ?>
+                <div class="notice notice-warning">
+                    <p><strong>Not Connected:</strong> DrChrono API is not connected. Please connect using the <a href="admin.php?page=teledox-settings">TeleDox Health Settings</a> page.</p>
                 </div>
             <?php else: ?>
                 <table class="form-table">
                     <tr>
-                        <th scope="row">Mode</th>
+                        <th scope="row">Connection Status</th>
                         <td>
-                            <span class="api-mode <?php echo $api_status['staging_mode'] ? 'staging' : 'production'; ?>">
-                                <?php echo $api_status['staging_mode'] ? 'Staging' : 'Production'; ?>
-                            </span>
+                            <span class="connection-status connected">✓ Connected</span>
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row">Debug Mode</th>
+                        <th scope="row">DrChrono User ID</th>
                         <td>
-                            <span class="debug-mode <?php echo $api_status['debug_mode'] ? 'enabled' : 'disabled'; ?>">
-                                <?php echo $api_status['debug_mode'] ? 'Enabled' : 'Disabled'; ?>
-                            </span>
+                            <code><?php echo esc_html($drchrono_user_id ?: 'Not available'); ?></code>
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row">API URL</th>
+                        <th scope="row">Username</th>
                         <td>
-                            <code><?php echo esc_html($api_status['api_url']); ?></code>
+                            <code><?php echo esc_html($drchrono_username ?: 'Not available'); ?></code>
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row">API Key</th>
+                        <th scope="row">Doctor ID</th>
                         <td>
-                            <?php if ($api_status['api_key_configured']): ?>
-                                <span class="api-key-status configured">✓ Configured</span>
-                            <?php else: ?>
-                                <span class="api-key-status missing">✗ Missing</span>
-                            <?php endif; ?>
+                            <code><?php echo esc_html($drchrono_doctor_id ?: 'Not available'); ?></code>
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row">Configuration</th>
+                        <th scope="row">API Base URL</th>
                         <td>
-                            <?php if ($api_status['configuration_valid']): ?>
-                                <span class="config-status valid">✓ Valid</span>
-                            <?php else: ?>
-                                <span class="config-status invalid">✗ Invalid</span>
-                            <?php endif; ?>
+                            <code>https://app.drchrono.com</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Token Status</th>
+                        <td>
+                            <span class="token-status valid">✓ Valid</span>
                         </td>
                     </tr>
                 </table>
@@ -97,28 +94,43 @@ function teledox_api_settings_page() {
         </div>
         
         <div class="teledox-api-test">
-            <h2>Test API Connection</h2>
+            <h2>Test DrChrono API Connection</h2>
             
             <form method="post" action="">
                 <?php wp_nonce_field('teledox_api_test', 'teledox_api_nonce'); ?>
-                <p>Click the button below to test the API connection. This will make a test request to the health endpoint.</p>
+                <p>Click the button below to test the DrChrono API connection. This will make a test request to the /api/users/current endpoint.</p>
                 
-                <input type="submit" name="teledox_test_api" class="button button-primary" value="Test API Connection">
+                <input type="submit" name="teledox_test_api" class="button button-primary" value="Test DrChrono API Connection">
             </form>
             
             <?php if (isset($_POST['teledox_test_api']) && wp_verify_nonce($_POST['teledox_api_nonce'], 'teledox_api_test')): ?>
                 <div class="api-test-results">
                     <h3>Test Results</h3>
                     <?php
-                    if ($api) {
-                        $test_result = $api->test_connection();
-                        if ($test_result) {
-                            echo '<div class="notice notice-success"><p>✓ API connection test successful!</p></div>';
+                    if ($drchrono_connected) {
+                        $test_result = $drchrono_api->get_current_user();
+                        if (!is_wp_error($test_result) && isset($test_result['data'])) {
+                            echo '<div class="notice notice-success"><p>✓ DrChrono API connection test successful!</p></div>';
+                            echo '<div class="test-details">';
+                            echo '<h4>User Information:</h4>';
+                            echo '<ul>';
+                            echo '<li><strong>User ID:</strong> ' . esc_html($test_result['data']['id']) . '</li>';
+                            echo '<li><strong>Username:</strong> ' . esc_html($test_result['data']['username']) . '</li>';
+                            echo '<li><strong>Is Doctor:</strong> ' . ($test_result['data']['is_doctor'] ? 'Yes' : 'No') . '</li>';
+                            echo '<li><strong>Is Staff:</strong> ' . ($test_result['data']['is_staff'] ? 'Yes' : 'No') . '</li>';
+                            if (isset($test_result['data']['doctor'])) {
+                                echo '<li><strong>Doctor ID:</strong> ' . esc_html($test_result['data']['doctor']) . '</li>';
+                            }
+                            echo '</ul>';
+                            echo '</div>';
                         } else {
-                            echo '<div class="notice notice-error"><p>✗ API connection test failed. Check the logs for details.</p></div>';
+                            echo '<div class="notice notice-error"><p>✗ DrChrono API connection test failed. Check the logs for details.</p></div>';
+                            if (is_wp_error($test_result)) {
+                                echo '<p><strong>Error:</strong> ' . esc_html($test_result->get_error_message()) . '</p>';
+                            }
                         }
                     } else {
-                        echo '<div class="notice notice-error"><p>✗ API not initialized. Check the plugin configuration.</p></div>';
+                        echo '<div class="notice notice-error"><p>✗ DrChrono API not connected. Please connect first using the <a href="admin.php?page=teledox-settings">TeleDox Health Settings</a> page.</p></div>';
                     }
                     ?>
                 </div>
@@ -126,37 +138,53 @@ function teledox_api_settings_page() {
         </div>
         
         <div class="teledox-api-info">
-            <h2>API Information</h2>
+            <h2>DrChrono API Information</h2>
             
             <div class="api-documentation">
-                <h3>Available Functions</h3>
+                <h3>Available DrChrono Functions</h3>
                 <ul>
-                    <li><code>teledox_api_request($endpoint, $method, $data, $headers)</code> - Make API requests</li>
-                    <li><code>teledox_get_api()</code> - Get API instance</li>
-                    <li><code>teledox_test_api_connection()</code> - Test connection</li>
-                    <li><code>teledox_get_api_status()</code> - Get configuration status</li>
+                    <li><code>TeleDox_DrChrono_API()</code> - Initialize DrChrono API instance</li>
+                    <li><code>$api->get_current_user()</code> - Get current user information</li>
+                    <li><code>$api->get_offices()</code> - Get office information</li>
+                    <li><code>$api->get_doctors()</code> - Get doctor information</li>
+                    <li><code>$api->get_patients()</code> - Get patient information</li>
+                    <li><code>$api->get_appointments()</code> - Get appointment information</li>
+                    <li><code>$api->is_connected()</code> - Check connection status</li>
                 </ul>
                 
                 <h3>Example Usage</h3>
-                <pre><code>// Simple GET request
-$response = teledox_api_request('users', 'GET');
+                <pre><code>// Initialize DrChrono API
+$api = new TeleDox_DrChrono_API();
 
-// POST request with data
-$data = array('name' => 'John Doe', 'email' => 'john@example.com');
-$response = teledox_api_request('users', 'POST', $data);
-
-// With custom headers
-$headers = array('Custom-Header' => 'value');
-$response = teledox_api_request('users', 'GET', null, $headers);
-
-// Check response
-if ($response['success']) {
-    $user_data = $response['data'];
-    // Process data
+// Check if connected
+if ($api->is_connected()) {
+    // Get current user
+    $user = $api->get_current_user();
+    
+    // Get offices
+    $offices = $api->get_offices();
+    
+    // Get doctors
+    $doctors = $api->get_doctors();
+    
+    // Get patients (first 10)
+    $patients = $api->get_patients(array('page_size' => 10));
+    
+    // Check response
+    if (!is_wp_error($user) && isset($user['data'])) {
+        $user_data = $user['data'];
+        echo "User: " . $user_data['username'];
+    }
 } else {
-    $error = $response['error'];
-    // Handle error
+    echo "DrChrono API not connected";
 }</code></pre>
+                
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="admin.php?page=teledox-settings">TeleDox Health Settings</a> - Connect/Disconnect DrChrono</li>
+                    <li><a href="admin.php?page=teledox-drchrono-tests">DrChrono Integration Tests</a> - Comprehensive testing</li>
+                    <li><a href="admin.php?page=teledox-drchrono-quick">Quick DrChrono Test</a> - Quick API testing</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -172,15 +200,7 @@ if ($response['success']) {
             border-radius: 4px;
         }
         
-        .api-mode.staging {
-            background: #ffb900;
-            color: #000;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-weight: bold;
-        }
-        
-        .api-mode.production {
+        .connection-status.connected {
             background: #46b450;
             color: #fff;
             padding: 4px 8px;
@@ -188,37 +208,27 @@ if ($response['success']) {
             font-weight: bold;
         }
         
-        .debug-mode.enabled {
-            background: #0073aa;
+        .connection-status.disconnected {
+            background: #dc3232;
             color: #fff;
             padding: 4px 8px;
             border-radius: 3px;
+            font-weight: bold;
         }
         
-        .debug-mode.disabled {
-            background: #666;
+        .token-status.valid {
+            background: #46b450;
             color: #fff;
             padding: 4px 8px;
             border-radius: 3px;
-        }
-        
-        .api-key-status.configured {
-            color: #46b450;
             font-weight: bold;
         }
         
-        .api-key-status.missing {
-            color: #dc3232;
-            font-weight: bold;
-        }
-        
-        .config-status.valid {
-            color: #46b450;
-            font-weight: bold;
-        }
-        
-        .config-status.invalid {
-            color: #dc3232;
+        .token-status.invalid {
+            background: #dc3232;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 3px;
             font-weight: bold;
         }
         
@@ -227,6 +237,28 @@ if ($response['success']) {
             padding: 15px;
             background: #f9f9f9;
             border-left: 4px solid #0073aa;
+        }
+        
+        .test-details {
+            margin-top: 15px;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        
+        .test-details h4 {
+            margin-top: 0;
+            color: #0073aa;
+        }
+        
+        .test-details ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .test-details li {
+            margin: 5px 0;
         }
         
         .api-documentation pre {

@@ -222,6 +222,19 @@ class TeleDox_DrChrono_Auth {
                 }
             });
         });
+        
+        // Add toggle function for JSON response
+        function toggleJsonResponse() {
+            var response = document.getElementById('json-response');
+            var toggle = document.getElementById('json-toggle');
+            if (response.style.display === 'none') {
+                response.style.display = 'block';
+                toggle.innerHTML = '▲';
+            } else {
+                response.style.display = 'none';
+                toggle.innerHTML = '▼';
+            }
+        }
         </script>
         <?php
     }
@@ -291,8 +304,13 @@ class TeleDox_DrChrono_Auth {
             $output .= '<p><strong>Connection Test Successful</strong></p>';
             $output .= '<p>User ID: ' . esc_html($user_data['id']) . '</p>';
             $output .= '<p>Username: ' . esc_html($user_data['username']) . '</p>';
-            $output .= '<p>Email: ' . esc_html($user_data['email']) . '</p>';
-            $output .= '<p>Name: ' . esc_html($user_data['first_name'] . ' ' . $user_data['last_name']) . '</p>';
+            $output .= '<p>Response Code: ' . esc_html($response['response_code']) . '</p>';
+            $output .= '<h4><a href="#" onclick="toggleJsonResponse(); return false;" style="text-decoration: none; color: #0073aa;">Full JSON Response: <span id="json-toggle">▼</span></a></h4>';
+            $output .= '<div id="json-response" style="display: none;">';
+            $output .= '<pre style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; font-size: 12px;">';
+            $output .= esc_html(json_encode($user_data, JSON_PRETTY_PRINT));
+            $output .= '</pre>';
+            $output .= '</div>';
             $output .= '</div>';
         }
         

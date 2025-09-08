@@ -81,6 +81,12 @@ class TeleDox_DrChrono_Test {
             echo "User ID: " . esc_html($user_data['id']) . "<br>\n";
             echo "Username: " . esc_html($user_data['username']) . "<br>\n";
             echo "Response Code: " . esc_html($response['response_code']) . "<br>\n";
+            echo "<h4><a href='#' onclick='toggleJsonResponse(); return false;' style='text-decoration: none; color: #0073aa;'>Full JSON Response: <span id='json-toggle'>▼</span></a></h4>";
+            echo "<div id='json-response' style='display: none;'>";
+            echo "<pre style='background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; font-size: 12px;'>";
+            echo esc_html(json_encode($user_data, JSON_PRETTY_PRINT));
+            echo "</pre>";
+            echo "</div>";
         }
         
         echo "<br>\n";
@@ -249,6 +255,20 @@ function teledox_drchrono_tests_page() {
     echo "<h3>Additional Tests</h3>\n";
     echo "<a href='?page=teledox-drchrono-tests&test=webhook' class='button'>Test Webhook Endpoint</a> ";
     echo "<a href='?page=teledox-drchrono-tests&test=webhook_log' class='button'>View Webhook Log</a>\n";
+    
+    echo "<script>
+    function toggleJsonResponse() {
+        var response = document.getElementById('json-response');
+        var toggle = document.getElementById('json-toggle');
+        if (response.style.display === 'none') {
+            response.style.display = 'block';
+            toggle.innerHTML = '▲';
+        } else {
+            response.style.display = 'none';
+            toggle.innerHTML = '▼';
+        }
+    }
+    </script>";
     
     echo "</div>\n";
 }

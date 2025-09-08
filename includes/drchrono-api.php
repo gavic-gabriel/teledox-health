@@ -18,20 +18,49 @@ class TeleDox_DrChrono_API {
     private $user_id;
     private $connection_data;
     
-    public function __construct($user_id = null) {
-        $this->user_id = $user_id ?: get_current_user_id();
+    public function __construct() {
         $this->load_connection_data();
+        $this->load_drchrono_user_data();
     }
     
     /**
-     * Load connection data for the current user
+     * Load connection data (access token, etc.)
      */
     private function load_connection_data() {
-        $this->connection_data = get_user_meta($this->user_id, 'teledox_drchrono_connection', true);
+        // Search for any valid connection data
+        global $wpdb;
+        $results = $wpdb->get_results("SELECT user_id, meta_value FROM {$wpdb->usermeta} WHERE meta_key = 'teledox_drchrono_connection'");
         
-        if (!$this->connection_data) {
-            $this->connection_data = get_option('teledox_drchrono_connection_' . $this->user_id, false);
+        foreach ($results as $result) {
+            $connection_data = maybe_unserialize($result->meta_value);
+            if (!empty($connection_data) && isset($connection_data['access_token'])) {
+                $this->connection_data = $connection_data;
+                break;
+            }
         }
+    }
+    
+    /**
+     * Load stored DrChrono user data (username, id, doctor, etc.)
+     */
+    private function load_drchrono_user_data() {
+        $this->user_id = get_option('teledox_drchrono_user_id', null);
+        $this->username = get_option('teledox_drchrono_username', null);
+        $this->doctor_id = get_option('teledox_drchrono_doctor_id', null);
+    }
+    
+    /**
+     * Store DrChrono user data from API response
+     */
+    private function store_drchrono_user_data($user_data) {
+        $this->user_id = $user_data['id'];
+        $this->username = $user_data['username'];
+        $this->doctor_id = $user_data['doctor'] ?? null;
+        
+        // Store in options for reuse
+        update_option('teledox_drchrono_user_id', $this->user_id);
+        update_option('teledox_drchrono_username', $this->username);
+        update_option('teledox_drchrono_doctor_id', $this->doctor_id);
     }
     
     /**
@@ -222,7 +251,14 @@ class TeleDox_DrChrono_API {
      * Get current user information
      */
     public function get_current_user() {
-        return $this->make_request('/api/users/current');
+        $response = $this->make_request('/api/users/current');
+        
+        // Store user data after successful API call for future use
+        if (!is_wp_error($response) && isset($response['data'])) {
+            $this->store_drchrono_user_data($response['data']);
+        }
+        
+        return $response;
     }
     
     /**
@@ -254,13 +290,44 @@ class TeleDox_DrChrono_API {
     }
     
     /**
+     * Get stored DrChrono user ID
+     */
+    public function get_drchrono_user_id() {
+        return $this->user_id;
+    }
+    
+    /**
+     * Get stored DrChrono username
+     */
+    public function get_drchrono_username() {
+        return $this->username;
+    }
+    
+    /**
+     * Get stored DrChrono doctor ID
+     */
+    public function get_drchrono_doctor_id() {
+        return $this->doctor_id;
+    }
+    
+    /**
      * Disconnect from DrChrono
      */
     public function disconnect() {
-        delete_user_meta($this->user_id, 'teledox_drchrono_connection');
-        delete_option('teledox_drchrono_connection_' . $this->user_id);
+        // Clear connection data
+        global $wpdb;
+        $wpdb->delete($wpdb->usermeta, array('meta_key' => 'teledox_drchrono_connection'));
+        
+        // Clear stored user data
+        delete_option('teledox_drchrono_user_id');
+        delete_option('teledox_drchrono_username');
+        delete_option('teledox_drchrono_doctor_id');
         
         $this->connection_data = null;
+        $this->user_id = null;
+        $this->username = null;
+        $this->doctor_id = null;
+        
         $this->log_success('DrChrono connection disconnected');
         
         return true;
