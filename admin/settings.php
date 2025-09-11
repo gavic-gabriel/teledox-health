@@ -8,7 +8,7 @@ function teledox_add_admin_menu() {
         'manage_options', // Capability required
         'teledox-settings', // Menu slug
         'teledox_settings_page', // Function to display the page
-        TELEDOX_PLUGIN_URL . 'img/teledox.svg', // Icon
+        'dashicons-image-filter', // Icon
         30 // Position
     );
 }

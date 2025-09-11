@@ -1,7 +1,38 @@
 CHANGELOG - TeleDox Health Plugin
 ====================================
 
-Version 1.1.02 (Current)
+Version 1.2.01 (Current)
+------------------------
+- ENHANCEMENT: Enhanced Login Flow with Comprehensive Testing and Debugging
+- Added comprehensive logging to password reset functionality for better debugging
+- Fixed patient lookup to find exact matches instead of taking first result from API
+- Fixed patient creation response handling to check for 201 status code like Quick Test
+- Added wp_mail() test function to Quick DrChrono Test page for mail system verification
+- Enhanced patient creation API to match DrChrono requirements with proper name splitting
+- Fixed patient deletion confirmation flow to prevent deletion on first step
+- Fixed DELETE request response parsing to handle 204 No Content responses
+- Removed all hardcoded tokens from Quick DrChrono Test page for security
+- Added debugging logs for patient creation process with comprehensive error tracking
+- Implemented proper AJAX response handling for login sequence
+- Added gender field to new account form for complete DrChrono API compatibility
+- Enhanced form validation and error handling throughout login flow
+- Updated CSS and JavaScript versions for cache busting
+- Comprehensive testing completed for account creation, existing user lookup, and patient ID storage
+- FEATURE: Custom Login Flow System
+- Implemented comprehensive custom login system replacing WordPress default login
+- Created programmatic page creation for login, reset-password, reset-sent, and new-account pages
+- Built custom template system with root-level URLs (/login/, /new-account/, etc.)
+- Added DrChrono API integration for patient lookup and creation during registration
+- Implemented dual search functionality (email first, then phone number) for existing patients
+- Created secure form handling with CSRF protection and input validation
+- Added AJAX-powered password reset confirmation system
+- Integrated with WooCommerce customer creation and My Account redirect
+- Built responsive design with custom CSS and JavaScript interactions
+- Added password visibility toggles and real-time form validation
+- Implemented comprehensive error handling with user-friendly messages
+- Created modular file structure for maintainable code organization
+
+Version 1.1.02
 ------------------------
 - ENHANCEMENT: Added Patient Payment Logs Integration
 - Implemented comprehensive patient payment logs API integration (/api/patient_payment_log)

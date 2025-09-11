@@ -17,11 +17,56 @@ function teledox_quick_test_drchrono() {
     
     echo "<h2>Quick DrChrono Token Test</h2>\n";
     
-    // Your token from Postman
-    $access_token = 'K38p9QnMgPlzr7Gz0QOM35aFhY5iGd';
-    $api_base_url = 'https://app.drchrono.com';
+    // Add mail test button
+    echo "<div style='background: #f0f0f0; padding: 15px; margin: 20px 0; border-radius: 5px;'>\n";
+    echo "<h3>Mail System Test</h3>\n";
+    echo "<p>Test if WordPress mail system is working:</p>\n";
+    echo "<button onclick='testMail()' class='button button-primary'>Test wp_mail() Function</button>\n";
+    echo "<div id='mail-test-result' style='margin-top: 10px;'></div>\n";
+    echo "</div>\n";
+    
+    echo "<script>\n";
+    echo "function testMail() {\n";
+    echo "    document.getElementById('mail-test-result').innerHTML = 'Testing...';\n";
+    echo "    fetch(ajaxurl, {\n";
+    echo "        method: 'POST',\n";
+    echo "        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },\n";
+    echo "        body: 'action=teledox_test_mail&nonce=" . wp_create_nonce('teledox_test_mail') . "'\n";
+    echo "    })\n";
+    echo "    .then(response => response.json())\n";
+    echo "    .then(data => {\n";
+    echo "        if (data.success) {\n";
+    echo "            document.getElementById('mail-test-result').innerHTML = '<div style=\"color: green;\">✅ ' + data.data + '</div>';\n";
+    echo "        } else {\n";
+    echo "            document.getElementById('mail-test-result').innerHTML = '<div style=\"color: red;\">❌ ' + data.data + '</div>';\n";
+    echo "        }\n";
+    echo "    })\n";
+    echo "    .catch(error => {\n";
+    echo "        document.getElementById('mail-test-result').innerHTML = '<div style=\"color: red;\">❌ Error: ' + error + '</div>';\n";
+    echo "    });\n";
+    echo "}\n";
+    echo "</script>\n";
+    
+    // Use the proper API connection instead of hardcoded token
+    if (!class_exists('TeleDox_DrChrono_API')) {
+        echo "<div class='notice notice-error'><p>DrChrono API class not available. Please ensure the API integration is properly loaded.</p></div>";
+        return;
+    }
+    
+    $api = new TeleDox_DrChrono_API();
+    
+    if (!$api->is_connected()) {
+        echo "<div class='notice notice-warning'><p><strong>API Not Connected:</strong> Please connect to DrChrono using the <a href='admin.php?page=teledox-settings'>TeleDox Health Settings</a> page or use the <a href='admin.php?page=teledox-drchrono-postman'>DrChrono Postman Test</a> page to set up your token.</p></div>";
+        return;
+    }
+    
+    $connection_info = $api->get_connection_info();
+    $access_token = $connection_info['access_token'] ?? 'Not available';
     
     echo "<h3>Testing Token: " . esc_html(substr($access_token, 0, 20)) . "...</h3>\n";
+    echo "<p><strong>Connection Status:</strong> ✅ Connected</p>\n";
+    echo "<p><strong>DrChrono User ID:</strong> " . esc_html($api->get_drchrono_user_id() ?: 'Not available') . "</p>\n";
+    echo "<p><strong>Username:</strong> " . esc_html($api->get_drchrono_username() ?: 'Not available') . "</p>\n";
     
     // Performance optimization notice
     echo "<div style='background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin: 10px 0;'>\n";
@@ -115,21 +160,14 @@ function teledox_quick_test_drchrono() {
     echo "<h4>Test 1: Get Current User</h4>\n";
     echo "<code>GET /api/users/current</code><br><br>\n";
     
-    $response = wp_remote_get($api_base_url . '/api/users/current', array(
-        'headers' => array(
-            'Authorization' => 'Bearer ' . $access_token,
-            'Content-Type' => 'application/json',
-        ),
-        'timeout' => 30,
-    ));
+    $user_response = $api->get_current_user();
     
-    if (is_wp_error($response)) {
+    if (is_wp_error($user_response)) {
         echo "❌ <strong>Request failed</strong><br>\n";
-        echo "Error: " . esc_html($response->get_error_message()) . "<br>\n";
+        echo "Error: " . esc_html($user_response->get_error_message()) . "<br>\n";
     } else {
-        $response_code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
+        $response_code = $user_response['response_code'] ?? 'Unknown';
+        $data = $user_response['data'] ?? null;
         
         echo "Response Code: " . esc_html($response_code) . "<br>\n";
         
@@ -356,21 +394,14 @@ function teledox_quick_test_drchrono() {
     echo "<h4>Test 6: Get Billing Profiles</h4>\n";
     echo "<code>GET /api/billing_profiles</code><br><br>\n";
     
-    $response = wp_remote_get($api_base_url . '/api/billing_profiles', array(
-        'headers' => array(
-            'Authorization' => 'Bearer ' . $access_token,
-            'Content-Type' => 'application/json',
-        ),
-        'timeout' => 30,
-    ));
+    $response = $api->make_request('/api/billing_profiles');
     
     if (is_wp_error($response)) {
         echo "❌ <strong>Request failed</strong><br>\n";
         echo "Error: " . esc_html($response->get_error_message()) . "<br>\n";
     } else {
-        $response_code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
+        $response_code = $response['response_code'] ?? 'Unknown';
+        $data = $response['data'] ?? null;
         
         echo "Response Code: " . esc_html($response_code) . "<br>\n";
         
@@ -483,21 +514,14 @@ function teledox_quick_test_drchrono() {
     echo "<h4>Test 7: Get Consent Forms</h4>\n";
     echo "<code>GET /api/consent_forms</code><br><br>\n";
     
-    $response = wp_remote_get($api_base_url . '/api/consent_forms', array(
-        'headers' => array(
-            'Authorization' => 'Bearer ' . $access_token,
-            'Content-Type' => 'application/json',
-        ),
-        'timeout' => 30,
-    ));
+    $response = $api->make_request('/api/consent_forms');
     
     if (is_wp_error($response)) {
         echo "❌ <strong>Request failed</strong><br>\n";
         echo "Error: " . esc_html($response->get_error_message()) . "<br>\n";
     } else {
-        $response_code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
+        $response_code = $response['response_code'] ?? 'Unknown';
+        $data = $response['data'] ?? null;
         
         echo "Response Code: " . esc_html($response_code) . "<br>\n";
         
@@ -533,27 +557,20 @@ function teledox_quick_test_drchrono() {
     echo "<code>GET /api/patient_payment_log</code><br><br>\n";
     
     // Get doctor ID from the API class
-    $drchrono_api = new TeleDox_DrChrono_API();
-    $doctor_id = $drchrono_api->get_drchrono_doctor_id();
+    $doctor_id = $api->get_drchrono_doctor_id();
     
     if ($doctor_id) {
-        $payment_url = $api_base_url . '/api/patient_payment_log?doctor=' . $doctor_id . '&page_size=8';
-        
-        $response = wp_remote_get($payment_url, array(
-            'headers' => array(
-                'Authorization' => 'Bearer ' . $access_token,
-                'Content-Type' => 'application/json',
-            ),
-            'timeout' => 30,
+        $response = $api->make_request('/api/patient_payment_log', 'GET', null, array(
+            'doctor' => $doctor_id,
+            'page_size' => 8
         ));
         
         if (is_wp_error($response)) {
             echo "❌ <strong>Request failed</strong><br>\n";
             echo "Error: " . esc_html($response->get_error_message()) . "<br>\n";
         } else {
-            $response_code = wp_remote_retrieve_response_code($response);
-            $body = wp_remote_retrieve_body($response);
-            $data = json_decode($body, true);
+            $response_code = $response['response_code'] ?? 'Unknown';
+            $data = $response['data'] ?? null;
             
             echo "Response Code: " . esc_html($response_code) . "<br>\n";
             echo "Doctor ID Filter: " . esc_html($doctor_id) . "<br>\n";
@@ -984,8 +1001,7 @@ function teledox_quick_test_drchrono() {
     // Check if we're processing a patient creation request
     if (isset($_POST['create_patient']) && wp_verify_nonce($_POST['patient_nonce'], 'create_patient_action')) {
         // Get doctor ID from the API class
-        $drchrono_api = new TeleDox_DrChrono_API();
-        $doctor_id = $drchrono_api->get_drchrono_doctor_id();
+        $doctor_id = $api->get_drchrono_doctor_id();
         
         if ($doctor_id) {
             // Sanitize form data
@@ -1014,14 +1030,7 @@ function teledox_quick_test_drchrono() {
             }
             
             // Create patient via API
-            $response = wp_remote_post($api_base_url . '/api/patients', array(
-                'headers' => array(
-                    'Authorization' => 'Bearer ' . $access_token,
-                    'Content-Type' => 'application/json',
-                ),
-                'body' => json_encode($patient_data),
-                'timeout' => 30,
-            ));
+            $response = $api->make_request('/api/patients', 'POST', $patient_data);
             
             if (is_wp_error($response)) {
                 echo "<div class='patient-result' style='background-color: #f8d7da; border-color: #dc3545;'>\n";
@@ -1029,9 +1038,8 @@ function teledox_quick_test_drchrono() {
                 echo "Error: " . esc_html($response->get_error_message()) . "<br>\n";
                 echo "</div>\n";
             } else {
-                $response_code = wp_remote_retrieve_response_code($response);
-                $body = wp_remote_retrieve_body($response);
-                $data = json_decode($body, true);
+                $response_code = $response['response_code'] ?? 'Unknown';
+                $data = $response['data'] ?? null;
                 
                 if ($response_code === 201 && $data && isset($data['id'])) {
                     $patient_id = $data['id'];
@@ -1081,13 +1089,7 @@ function teledox_quick_test_drchrono() {
         
         if ($patient_id) {
             // Lookup patient via API
-            $response = wp_remote_get($api_base_url . '/api/patients/' . $patient_id, array(
-                'headers' => array(
-                    'Authorization' => 'Bearer ' . $access_token,
-                    'Content-Type' => 'application/json',
-                ),
-                'timeout' => 30,
-            ));
+            $response = $api->make_request('/api/patients/' . $patient_id);
             
             if (is_wp_error($response)) {
                 echo "<div class='patient-result' style='background-color: #f8d7da; border-color: #dc3545;'>\n";
@@ -1095,9 +1097,8 @@ function teledox_quick_test_drchrono() {
                 echo "Error: " . esc_html($response->get_error_message()) . "<br>\n";
                 echo "</div>\n";
             } else {
-                $response_code = wp_remote_retrieve_response_code($response);
-                $body = wp_remote_retrieve_body($response);
-                $data = json_decode($body, true);
+                $response_code = $response['response_code'] ?? 'Unknown';
+                $data = $response['data'] ?? null;
                 
                 if ($response_code === 200 && $data) {
                     echo "<div class='patient-result'>\n";
@@ -1168,19 +1169,14 @@ function teledox_quick_test_drchrono() {
     echo "<strong>⚠️ WARNING:</strong> This will permanently delete a patient from DrChrono. This action cannot be undone!\n";
     echo "</div>\n";
     
+    // NOTE: Form-based deletion code commented out - delete tab uses AJAX flow instead
     // Check if we're processing a patient lookup for deletion
-    if (isset($_POST['lookup_for_delete']) && wp_verify_nonce($_POST['delete_nonce'], 'delete_patient_action')) {
+    if (false && isset($_POST['lookup_for_delete']) && wp_verify_nonce($_POST['delete_nonce'], 'delete_patient_action')) {
         $patient_id = sanitize_text_field($_POST['delete_patient_id']);
         
         if ($patient_id) {
             // Lookup patient via API to show details before deletion
-            $response = wp_remote_get($api_base_url . '/api/patients/' . $patient_id, array(
-                'headers' => array(
-                    'Authorization' => 'Bearer ' . $access_token,
-                    'Content-Type' => 'application/json',
-                ),
-                'timeout' => 30,
-            ));
+            $response = $api->make_request('/api/patients/' . $patient_id);
             
             if (is_wp_error($response)) {
                 echo "<div class='patient-result' style='background-color: #f8d7da; border-color: #dc3545;'>\n";
@@ -1188,9 +1184,8 @@ function teledox_quick_test_drchrono() {
                 echo "Error: " . esc_html($response->get_error_message()) . "<br>\n";
                 echo "</div>\n";
             } else {
-                $response_code = wp_remote_retrieve_response_code($response);
-                $body = wp_remote_retrieve_body($response);
-                $data = json_decode($body, true);
+                $response_code = $response['response_code'] ?? 'Unknown';
+                $data = $response['data'] ?? null;
                 
                 if ($response_code === 200 && $data) {
                     // Show patient details and confirmation form
@@ -1215,7 +1210,7 @@ function teledox_quick_test_drchrono() {
                     echo "</div>\n";
                     
                     echo "<form method='post' style='margin-top: 15px;'>\n";
-                    echo wp_nonce_field('delete_patient_action', 'delete_nonce', true, false);
+                    echo wp_nonce_field('confirm_delete_patient_action', 'confirm_delete_nonce', true, false);
                     echo "<input type='hidden' name='confirm_delete_patient_id' value='" . esc_attr($patient_id) . "'>\n";
                     echo "<button type='submit' name='confirm_delete_patient' style='background-color: #dc3545; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;'>YES, DELETE THIS PATIENT PERMANENTLY</button>\n";
                     echo "</form>\n";
@@ -1235,20 +1230,14 @@ function teledox_quick_test_drchrono() {
         }
     }
     
+    // NOTE: Form-based confirmation code commented out - delete tab uses AJAX flow instead
     // Check if we're processing a confirmed delete request
-    if (isset($_POST['confirm_delete_patient']) && wp_verify_nonce($_POST['delete_nonce'], 'delete_patient_action')) {
+    if (false && isset($_POST['confirm_delete_patient']) && wp_verify_nonce($_POST['confirm_delete_nonce'], 'confirm_delete_patient_action')) {
         $patient_id = sanitize_text_field($_POST['confirm_delete_patient_id']);
         
         if ($patient_id) {
             // Delete patient via API
-            $response = wp_remote_request($api_base_url . '/api/patients/' . $patient_id, array(
-                'method' => 'DELETE',
-                'headers' => array(
-                    'Authorization' => 'Bearer ' . $access_token,
-                    'Content-Type' => 'application/json',
-                ),
-                'timeout' => 30,
-            ));
+            $response = $api->make_request('/api/patients/' . $patient_id, 'DELETE');
             
             if (is_wp_error($response)) {
                 echo "<div class='patient-result' style='background-color: #f8d7da; border-color: #dc3545;'>\n";
@@ -1256,7 +1245,7 @@ function teledox_quick_test_drchrono() {
                 echo "Error: " . esc_html($response->get_error_message()) . "<br>\n";
                 echo "</div>\n";
             } else {
-                $response_code = wp_remote_retrieve_response_code($response);
+                $response_code = $response['response_code'] ?? 'Unknown';
                 
                 if ($response_code === 204) {
                     echo "<div class='patient-result' style='background-color: #d4edda; border-color: #c3e6cb;'>\n";
@@ -1348,6 +1337,12 @@ function teledox_handle_availability_check() {
     
     // Get the stored doctor ID from the API class
     $api = new TeleDox_DrChrono_API();
+    
+    if (!$api->is_connected()) {
+        wp_send_json_error('DrChrono API not connected. Please set up your token first.');
+        return;
+    }
+    
     $doctor_id = $api->get_drchrono_doctor_id();
     
     if (!$doctor_id) {
@@ -1356,38 +1351,26 @@ function teledox_handle_availability_check() {
     }
     
     // Make API request to check availability
-    $access_token = 'K38p9QnMgPlzr7Gz0QOM35aFhY5iGd'; // Your token from Postman
-    $api_base_url = 'https://app.drchrono.com';
-    
     $params = array(
         'date' => $date,
         'doctor' => $doctor_id,
         'duration' => $duration
     );
     
-    $url = $api_base_url . '/api/availability?' . http_build_query($params);
-    
-    $response = wp_remote_get($url, array(
-        'headers' => array(
-            'Authorization' => 'Bearer ' . $access_token,
-            'Content-Type' => 'application/json',
-        ),
-        'timeout' => 30,
-    ));
+    $response = $api->make_request('/api/availability', 'GET', null, $params);
     
     if (is_wp_error($response)) {
         wp_send_json_error('Request failed: ' . $response->get_error_message());
         return;
     }
     
-    $response_code = wp_remote_retrieve_response_code($response);
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
+    $response_code = $response['response_code'] ?? 'Unknown';
+    $data = $response['data'] ?? null;
     
     if ($response_code === 200 && $data) {
         wp_send_json_success($data);
     } else {
-        wp_send_json_error('API request failed. Response: ' . $body);
+        wp_send_json_error('API request failed. Response Code: ' . $response_code);
     }
 }
 
@@ -1418,27 +1401,31 @@ function teledox_handle_test_request() {
     }
     
     $test_type = sanitize_text_field($_POST['test_type']);
-    $access_token = 'K38p9QnMgPlzr7Gz0QOM35aFhY5iGd';
-    $api_base_url = 'https://app.drchrono.com';
+    
+    // Use the proper API connection
+    if (!class_exists('TeleDox_DrChrono_API')) {
+        wp_send_json_error('DrChrono API class not available');
+        return;
+    }
+    
+    $api = new TeleDox_DrChrono_API();
+    
+    if (!$api->is_connected()) {
+        wp_send_json_error('DrChrono API not connected. Please set up your token first.');
+        return;
+    }
     
     $response_html = '';
     
     switch ($test_type) {
         case 'offices':
-            $response = wp_remote_get($api_base_url . '/api/offices', array(
-                'headers' => array(
-                    'Authorization' => 'Bearer ' . $access_token,
-                    'Content-Type' => 'application/json',
-                ),
-                'timeout' => 30,
-            ));
+            $response = $api->get_offices();
             
             if (is_wp_error($response)) {
                 $response_html = '<div class=\"test-result error\">❌ <strong>Request failed</strong><br>Error: ' . esc_html($response->get_error_message()) . '</div>';
             } else {
-                $response_code = wp_remote_retrieve_response_code($response);
-                $body = wp_remote_retrieve_body($response);
-                $data = json_decode($body, true);
+                $response_code = $response['response_code'] ?? 'Unknown';
+                $data = $response['data'] ?? null;
                 
                 if ($response_code === 200 && $data) {
                     $count = isset($data['results']) ? count($data['results']) : 0;
@@ -1448,26 +1435,19 @@ function teledox_handle_test_request() {
                     }
                     $response_html .= 'Response Code: ' . esc_html($response_code) . '</div>';
                 } else {
-                    $response_html = '<div class=\"test-result error\">❌ <strong>Failed</strong><br>Response: ' . esc_html($body) . '</div>';
+                    $response_html = '<div class=\"test-result error\">❌ <strong>Failed</strong><br>Response Code: ' . esc_html($response_code) . '</div>';
                 }
             }
             break;
             
         case 'doctors':
-            $response = wp_remote_get($api_base_url . '/api/doctors', array(
-                'headers' => array(
-                    'Authorization' => 'Bearer ' . $access_token,
-                    'Content-Type' => 'application/json',
-                ),
-                'timeout' => 30,
-            ));
+            $response = $api->get_doctors();
             
             if (is_wp_error($response)) {
                 $response_html = '<div class=\"test-result error\">❌ <strong>Request failed</strong><br>Error: ' . esc_html($response->get_error_message()) . '</div>';
             } else {
-                $response_code = wp_remote_retrieve_response_code($response);
-                $body = wp_remote_retrieve_body($response);
-                $data = json_decode($body, true);
+                $response_code = $response['response_code'] ?? 'Unknown';
+                $data = $response['data'] ?? null;
                 
                 if ($response_code === 200 && $data) {
                     $count = isset($data['results']) ? count($data['results']) : 0;
@@ -1477,26 +1457,19 @@ function teledox_handle_test_request() {
                     }
                     $response_html .= 'Response Code: ' . esc_html($response_code) . '</div>';
                 } else {
-                    $response_html = '<div class=\"test-result error\">❌ <strong>Failed</strong><br>Response: ' . esc_html($body) . '</div>';
+                    $response_html = '<div class=\"test-result error\">❌ <strong>Failed</strong><br>Response Code: ' . esc_html($response_code) . '</div>';
                 }
             }
             break;
             
         case 'patients':
-            $response = wp_remote_get($api_base_url . '/api/patients?page_size=5', array(
-                'headers' => array(
-                    'Authorization' => 'Bearer ' . $access_token,
-                    'Content-Type' => 'application/json',
-                ),
-                'timeout' => 30,
-            ));
+            $response = $api->get_patients(array('page_size' => 5));
             
             if (is_wp_error($response)) {
                 $response_html = '<div class=\"test-result error\">❌ <strong>Request failed</strong><br>Error: ' . esc_html($response->get_error_message()) . '</div>';
             } else {
-                $response_code = wp_remote_retrieve_response_code($response);
-                $body = wp_remote_retrieve_body($response);
-                $data = json_decode($body, true);
+                $response_code = $response['response_code'] ?? 'Unknown';
+                $data = $response['data'] ?? null;
                 
                 if ($response_code === 200 && $data) {
                     $count = isset($data['results']) ? count($data['results']) : 0;
@@ -1506,7 +1479,7 @@ function teledox_handle_test_request() {
                     }
                     $response_html .= 'Response Code: ' . esc_html($response_code) . '</div>';
                 } else {
-                    $response_html = '<div class=\"test-result error\">❌ <strong>Failed</strong><br>Response: ' . esc_html($body) . '</div>';
+                    $response_html = '<div class=\"test-result error\">❌ <strong>Failed</strong><br>Response Code: ' . esc_html($response_code) . '</div>';
                 }
             }
             break;
@@ -1533,15 +1506,26 @@ function teledox_handle_patient_action() {
     }
     
     $patient_action = sanitize_text_field($_POST['patient_action']);
-    $access_token = 'K38p9QnMgPlzr7Gz0QOM35aFhY5iGd';
-    $api_base_url = 'https://app.drchrono.com';
+    
+    // Use the proper API connection
+    if (!class_exists('TeleDox_DrChrono_API')) {
+        wp_send_json_error('DrChrono API class not available');
+        return;
+    }
+    
+    $api = new TeleDox_DrChrono_API();
+    
+    if (!$api->is_connected()) {
+        wp_send_json_error('DrChrono API not connected. Please set up your token first.');
+        return;
+    }
+    
     $response_html = '';
     
     switch ($patient_action) {
         case 'create':
             // Handle patient creation
-            $drchrono_api = new TeleDox_DrChrono_API();
-            $doctor_id = $drchrono_api->get_drchrono_doctor_id();
+            $doctor_id = $api->get_drchrono_doctor_id();
             
             if ($doctor_id) {
                 $first_name = sanitize_text_field($_POST['first_name']);
@@ -1561,21 +1545,13 @@ function teledox_handle_patient_action() {
                     'cell_phone' => $cell_phone
                 );
                 
-                $response = wp_remote_post($api_base_url . '/api/patients', array(
-                    'headers' => array(
-                        'Authorization' => 'Bearer ' . $access_token,
-                        'Content-Type' => 'application/json',
-                    ),
-                    'body' => json_encode($patient_data),
-                    'timeout' => 30,
-                ));
+                $response = $api->make_request('/api/patients', 'POST', $patient_data);
                 
                 if (is_wp_error($response)) {
                     $response_html = '<div class="patient-result" style="background-color: #f8d7da; border-color: #dc3545;">❌ <strong>Patient Creation Failed</strong><br>Error: ' . esc_html($response->get_error_message()) . '</div>';
                 } else {
-                    $response_code = wp_remote_retrieve_response_code($response);
-                    $body = wp_remote_retrieve_body($response);
-                    $data = json_decode($body, true);
+                    $response_code = $response['response_code'] ?? 'Unknown';
+                    $data = $response['data'] ?? null;
                     
                     if ($response_code === 201 && $data) {
                         $response_html = '<div class="patient-result" style="background-color: #d4edda; border-color: #c3e6cb;">✅ <strong>Patient Successfully Created!</strong><br>';
@@ -1608,20 +1584,13 @@ function teledox_handle_patient_action() {
             $patient_id = sanitize_text_field($_POST['patient_id']);
             
             if ($patient_id) {
-                $response = wp_remote_get($api_base_url . '/api/patients/' . $patient_id, array(
-                    'headers' => array(
-                        'Authorization' => 'Bearer ' . $access_token,
-                        'Content-Type' => 'application/json',
-                    ),
-                    'timeout' => 30,
-                ));
+                $response = $api->make_request('/api/patients/' . $patient_id);
                 
                 if (is_wp_error($response)) {
                     $response_html = '<div class="patient-result" style="background-color: #f8d7da; border-color: #dc3545;">❌ <strong>Patient Lookup Failed</strong><br>Error: ' . esc_html($response->get_error_message()) . '</div>';
                 } else {
-                    $response_code = wp_remote_retrieve_response_code($response);
-                    $body = wp_remote_retrieve_body($response);
-                    $data = json_decode($body, true);
+                    $response_code = $response['response_code'] ?? 'Unknown';
+                    $data = $response['data'] ?? null;
                     
                     if ($response_code === 200 && $data) {
                         $response_html = '<div class="patient-result" style="background-color: #d4edda; border-color: #c3e6cb;">✅ <strong>Patient Lookup Successful!</strong><br>';
@@ -1651,20 +1620,13 @@ function teledox_handle_patient_action() {
             $patient_id = sanitize_text_field($_POST['patient_id']);
             
             if ($patient_id) {
-                $response = wp_remote_get($api_base_url . '/api/patients/' . $patient_id, array(
-                    'headers' => array(
-                        'Authorization' => 'Bearer ' . $access_token,
-                        'Content-Type' => 'application/json',
-                    ),
-                    'timeout' => 30,
-                ));
+                $response = $api->make_request('/api/patients/' . $patient_id);
                 
                 if (is_wp_error($response)) {
                     $response_html = '<div class="patient-result" style="background-color: #f8d7da; border-color: #dc3545;">❌ <strong>Patient Lookup Failed</strong><br>Error: ' . esc_html($response->get_error_message()) . '</div>';
                 } else {
-                    $response_code = wp_remote_retrieve_response_code($response);
-                    $body = wp_remote_retrieve_body($response);
-                    $data = json_decode($body, true);
+                    $response_code = $response['response_code'] ?? 'Unknown';
+                    $data = $response['data'] ?? null;
                     
                     if ($response_code === 200 && $data) {
                         $response_html = '<div class="patient-result" style="background-color: #fff3cd; border-color: #ffc107;">';
@@ -1702,28 +1664,17 @@ function teledox_handle_patient_action() {
             $patient_id = sanitize_text_field($_POST['patient_id']);
             
             if ($patient_id) {
-                $response = wp_remote_request($api_base_url . '/api/patients/' . $patient_id, array(
-                    'method' => 'DELETE',
-                    'headers' => array(
-                        'Authorization' => 'Bearer ' . $access_token,
-                        'Content-Type' => 'application/json',
-                    ),
-                    'timeout' => 30,
-                ));
+                $response = $api->make_request('/api/patients/' . $patient_id, 'DELETE');
                 
                 if (is_wp_error($response)) {
                     $response_html = '<div class="patient-result" style="background-color: #f8d7da; border-color: #dc3545;">❌ <strong>Patient Deletion Failed</strong><br>Error: ' . esc_html($response->get_error_message()) . '</div>';
                 } else {
-                    $response_code = wp_remote_retrieve_response_code($response);
+                    $response_code = $response['response_code'] ?? 'Unknown';
                     
                     if ($response_code === 204) {
                         $response_html = '<div class="patient-result" style="background-color: #d4edda; border-color: #c3e6cb;">✅ <strong>Patient Successfully Deleted</strong><br>Patient ID: ' . esc_html($patient_id) . ' has been permanently removed from DrChrono.<br>Response Code: ' . esc_html($response_code) . ' (No Content)</div>';
                     } else {
-                        $body = wp_remote_retrieve_body($response);
                         $response_html = '<div class="patient-result" style="background-color: #f8d7da; border-color: #dc3545;">❌ <strong>Patient Deletion Failed</strong><br>Response Code: ' . esc_html($response_code) . '<br>';
-                        if ($body) {
-                            $response_html .= 'Response: ' . esc_html($body) . '<br>';
-                        }
                         $response_html .= '</div>';
                     }
                 }

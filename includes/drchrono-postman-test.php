@@ -265,5 +265,5 @@ class TeleDox_DrChrono_Postman_Test {
 
 // Initialize Postman testing
 $teledox_drchrono_postman = new TeleDox_DrChrono_Postman_Test();
-// Temporarily hidden - uncomment when needed for testing
-// add_action('admin_menu', array($teledox_drchrono_postman, 'add_postman_menu'));
+// Enabled for token testing
+add_action('admin_menu', array($teledox_drchrono_postman, 'add_postman_menu'));

@@ -233,18 +233,36 @@ class TeleDox_DrChrono_API {
             return new WP_Error('auth_failed', 'Authentication failed');
         }
         
-        $decoded_body = json_decode($body, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->log_error('Invalid JSON response from DrChrono API: ' . $body);
-            return new WP_Error('invalid_json', 'Invalid JSON response');
+        // Handle different response types
+        if ($response_code === 204) {
+            // No Content response (typically for DELETE requests)
+            return array(
+                'data' => null,
+                'response_code' => $response_code,
+                'headers' => wp_remote_retrieve_headers($response),
+            );
+        } elseif (empty($body)) {
+            // Empty body response
+            return array(
+                'data' => null,
+                'response_code' => $response_code,
+                'headers' => wp_remote_retrieve_headers($response),
+            );
+        } else {
+            // Try to parse JSON for other responses
+            $decoded_body = json_decode($body, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $this->log_error('Invalid JSON response from DrChrono API: ' . $body);
+                return new WP_Error('invalid_json', 'Invalid JSON response');
+            }
+            
+            return array(
+                'data' => $decoded_body,
+                'response_code' => $response_code,
+                'headers' => wp_remote_retrieve_headers($response),
+            );
         }
-        
-        return array(
-            'data' => $decoded_body,
-            'response_code' => $response_code,
-            'headers' => wp_remote_retrieve_headers($response),
-        );
     }
     
     /**

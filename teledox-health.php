@@ -3,7 +3,7 @@
  * Plugin Name: TeleDox Health
  * Plugin URI: https://teledoxhealth.com
  * Description: Expand core functionality of the TeleDox Health platform.
- * Version: 1.1.03
+ * Version: 1.2.01
  * Author: GAVIC Strategies
  * Author URI: https://gavicstrategies.com
  * Text Domain: teledox-health
@@ -36,6 +36,13 @@ if (file_exists(dirname(__FILE__) . '/admin/settings.php')) {
     msg_teledox_health('Settings file not found', 'error');
 }
 
+// Include Login Functions
+if (file_exists(dirname(__FILE__) . '/includes/login-functions.php')) {
+    include_once dirname(__FILE__) . '/includes/login-functions.php';
+} else {
+    msg_teledox_health('Login functions file not found', 'error');
+}
+
 // Original API
 // define( 'TELEDOX_API_URL', 'https://cf-web-api-868745391880.us-east1.run.app/' );
 if (teledox_get_setting('staging_mode')) {
@@ -51,6 +58,9 @@ if (teledox_get_setting('staging_mode')) {
 
 function teledox_activate_plugin(){
 	msg_teledox_health('Plugin Activated', 'plugin');
+	
+	// Create custom login pages
+	do_action('teledox_plugin_activated');
 }
 register_activation_hook( __FILE__, "teledox_activate_plugin" );
 
