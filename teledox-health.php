@@ -3,7 +3,7 @@
  * Plugin Name: TeleDox Health
  * Plugin URI: https://teledoxhealth.com
  * Description: Expand core functionality of the TeleDox Health platform.
- * Version: 1.2.01
+ * Version: 1.2.03
  * Author: GAVIC Strategies
  * Author URI: https://gavicstrategies.com
  * Text Domain: teledox-health
