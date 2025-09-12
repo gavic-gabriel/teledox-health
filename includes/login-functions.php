@@ -91,42 +91,6 @@ function teledox_template_redirect() {
 }
 add_action('template_redirect', 'teledox_template_redirect');
 
-/**
- * Enqueue login-specific styles and scripts
- */
-function teledox_enqueue_login_assets() {
-    if (is_page(array('login', 'reset-password', 'reset-sent', 'new-account'))) {
-        wp_enqueue_style(
-            'teledox-login-css',
-            TELEDOX_CSS_URI . 'login.css',
-            array(),
-            '1.2.01'
-        );
-        
-        wp_enqueue_script(
-            'teledox-login-js',
-            TELEDOX_JS_URI . 'login.js',
-            array('jquery'),
-            '1.2.01',
-            true
-        );
-        
-        // Localize script for AJAX
-        wp_localize_script('teledox-login-js', 'teledox_login_ajax', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('teledox_login_nonce'),
-            'messages' => array(
-                'loading' => 'Please wait...',
-                'error' => 'An error occurred. Please try again.',
-                'success' => 'Success!',
-                'invalid_email' => 'Please enter a valid email address.',
-                'password_mismatch' => 'Passwords do not match.',
-                'required_field' => 'This field is required.'
-            )
-        ));
-    }
-}
-add_action('wp_enqueue_scripts', 'teledox_enqueue_login_assets');
 
 /**
  * Handle login form submission
@@ -237,6 +201,90 @@ function teledox_handle_password_reset() {
 }
 add_action('wp_ajax_teledox_reset_password', 'teledox_handle_password_reset');
 add_action('wp_ajax_nopriv_teledox_reset_password', 'teledox_handle_password_reset');
+
+/**
+ * Redirect WordPress password reset URLs to our custom page
+ */
+function teledox_redirect_password_reset() {
+    // Only redirect if we're NOT already on our custom reset page
+    $current_url = $_SERVER['REQUEST_URI'];
+    if (strpos($current_url, '/reset-password/') !== false) {
+        return; // Already on our custom page, don't redirect
+    }
+    
+    // Check if this is a password reset request from WordPress
+    if (isset($_GET['action']) && $_GET['action'] === 'rp' && isset($_GET['key']) && isset($_GET['login'])) {
+        // Redirect to our custom reset page with the parameters
+        $reset_url = home_url('/reset-password/');
+        $reset_url = add_query_arg(array(
+            'action' => 'rp',
+            'key' => $_GET['key'],
+            'login' => $_GET['login']
+        ), $reset_url);
+        
+        wp_redirect($reset_url);
+        exit;
+    }
+}
+add_action('init', 'teledox_redirect_password_reset');
+
+/**
+ * Handle password reset entry (when user submits new password)
+ */
+function teledox_handle_password_reset_entry() {
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'teledox_login_nonce')) {
+        msg_teledox_health('Password reset entry failed: Security check failed', 'login');
+        wp_die('Security check failed');
+    }
+    
+    $pass1 = sanitize_text_field($_POST['pass1']);
+    $pass2 = sanitize_text_field($_POST['pass2']);
+    $rp_key = sanitize_text_field($_POST['rp_key']);
+    $rp_login = sanitize_text_field($_POST['rp_login']);
+    
+    msg_teledox_health("Password reset entry attempt for user: {$rp_login}", 'login');
+    
+    // Validate passwords
+    if (strlen($pass1) < 6) {
+        msg_teledox_health("Password reset failed: Password too short", 'login');
+        wp_send_json_error('Password must be at least 6 characters long');
+        return;
+    }
+    
+    if ($pass1 !== $pass2) {
+        msg_teledox_health("Password reset failed: Passwords do not match", 'login');
+        wp_send_json_error('Passwords do not match');
+        return;
+    }
+    
+    // Check the reset key
+    $user = check_password_reset_key($rp_key, $rp_login);
+    
+    if (is_wp_error($user)) {
+        $error_code = $user->get_error_code();
+        msg_teledox_health("Password reset failed: Invalid or expired key. Error: {$error_code}", 'login');
+        
+        if ($error_code === 'expired_key') {
+            wp_send_json_error('Password reset link has expired. Please request a new one.');
+        } else {
+            wp_send_json_error('Invalid password reset link. Please request a new one.');
+        }
+        return;
+    }
+    
+    // Reset the password
+    wp_set_password($pass1, $user->ID);
+    msg_teledox_health("Password successfully reset for user: {$user->user_login} (ID: {$user->ID})", 'login');
+    
+    // Clear any password reset cookies
+    $rp_cookie = 'wp-resetpass-' . COOKIEHASH;
+    setcookie($rp_cookie, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+    
+    wp_send_json_success('Password has been reset successfully');
+}
+add_action('wp_ajax_teledox_reset_password_entry', 'teledox_handle_password_reset_entry');
+add_action('wp_ajax_nopriv_teledox_reset_password_entry', 'teledox_handle_password_reset_entry');
 
 /**
  * Test function to check if wp_mail() is working

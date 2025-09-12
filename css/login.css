@@ -1,13 +1,20 @@
 /* TeleDox Health Custom Login Styles - Version 1.2.01 */
 
+@import url('https://290827-teledox-prod.local/wp-content/uploads/elementor/google-fonts/css/leaguespartan.css');
+#site-header {
+    display: none;
+}
+#site-footer {
+    display: none;
+}
 .teledox-login-container {
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: start;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #ffffff;
+    padding: 20px 40px; 
+    font-family: "League Spartan", sans-serif;
 }
 
 .teledox-login-wrapper {
@@ -17,14 +24,14 @@
 
 .teledox-login-form-container {
     background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    padding: 40px;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
     position: relative;
     overflow: hidden;
 }
 
-.teledox-login-form-container::before {
+/* .teledox-login-form-container::before {
     content: '';
     position: absolute;
     top: 0;
@@ -32,39 +39,64 @@
     right: 0;
     height: 4px;
     background: linear-gradient(90deg, #667eea, #764ba2);
+} */
+
+.teledox-header-with-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.teledox-back-button,
+.teledox-back-button[type=button],
+.teledox-back-button[type=button]:focus,
+.teledox-back-button[type=button]:hover,
+.teledox-back-button:focus,
+.teledox-back-button:hover {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.teledox-back-icon {
+    width: 8px;
+    height: 24px;
 }
 
 .teledox-login-form-container h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
     color: #2d3748;
-    margin: 0 0 30px 0;
+    margin: 0;
     text-align: center;
 }
 
 .teledox-login-form-container h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #4a5568;
     margin: 0 0 15px 0;
 }
 
 .teledox-welcome-section {
     margin-bottom: 30px;
-    text-align: center;
+    text-align: left;
 }
 
 .teledox-welcome-section p {
-    color: #718096;
-    line-height: 1.6;
     margin: 0;
-    font-size: 1rem;
 }
 
 .teledox-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
 }
 
 .teledox-form-group {
@@ -76,7 +108,7 @@
 .teledox-form-group label {
     font-weight: 600;
     color: #2d3748;
-    font-size: 0.95rem;
+    font-size: 20px;
 }
 
 .teledox-form-group input[type="text"],
@@ -86,18 +118,24 @@
 .teledox-form-group input[type="password"],
 .teledox-form-group select {
     padding: 12px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 1rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 20px;
+    line-height: 1.1;
     transition: all 0.3s ease;
-    background: #ffffff;
+    background: #59C6CF33;
+    outline: none;
+    box-shadow: none;
 }
 
 .teledox-form-group input:focus,
-.teledox-form-group select:focus {
+.teledox-form-group select:focus,
+.teledox-form-group input:active,
+.teledox-form-group select:active,
+.teledox-form-group input:hover,
+.teledox-form-group select:hover {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: none;
 }
 
 .teledox-password-input {
@@ -111,81 +149,113 @@
     width: 100%;
 }
 
-.teledox-password-toggle {
+.teledox-password-toggle,
+.teledox-password-toggle[type=button],
+.teledox-password-toggle[type=button]:focus,
+.teledox-password-toggle[type=button]:hover,
+.teledox-password-toggle:focus,
+.teledox-password-toggle:hover {
     position: absolute;
     right: 12px;
     background: none;
     border: none;
+    padding: 0;
+    margin: 0;
     cursor: pointer;
-    padding: 4px;
-    font-size: 1.2rem;
-    color: #718096;
-    transition: color 0.3s ease;
-}
-
-.teledox-password-toggle:hover {
-    color: #667eea;
-}
-
-.teledox-checkbox-label {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+}
+
+.teledox-eye-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.teledox-eye-icon.eye-visible path:last-child {
+    display: none;
+}
+
+.teledox-form-group .teledox-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     cursor: pointer;
     font-weight: 500;
     color: #4a5568;
+    font-size: 14px;
 }
 
 .teledox-checkbox-label input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     accent-color: #667eea;
+}
+
+.teledox-remember-forgot-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
 }
 
 .teledox-form-links {
     text-align: right;
-    margin-top: 8px;
+    margin-top: 0;
 }
 
 .teledox-form-links a {
-    color: #667eea;
+    color: #000000;
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 12px;
     font-weight: 500;
-    transition: color 0.3s ease;
+    transition: text-decoration 0.3s ease;
 }
 
 .teledox-form-links a:hover {
-    color: #5a67d8;
+    color: #000000;
     text-decoration: underline;
 }
 
-.teledox-btn {
-    padding: 14px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
+.teledox-login-container .teledox-btn {
+    background-color: #69727d;
+    border-radius: 3px;
+    color: #fff;
     display: inline-block;
+    font-size: 15px;
+    line-height: 1;
+    padding: 12px 24px;
+    fill: #fff;
     text-align: center;
+    transition: all .3s;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
     position: relative;
     overflow: hidden;
 }
 
-.teledox-btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+.teledox-login-container .teledox-btn-primary {
+    background-color: #012049;
+    font-family: "League Spartan", Sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    text-transform: capitalize;
+    text-decoration: none !important;
+    color: #ffffff !important;
+    border-radius: 30px 30px 30px 30px;
+    padding: 11px 10px 10px 10px;
+    width: 207px;
+    align-self: center;
 }
 
-.teledox-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+.teledox-login-container .teledox-btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
-
+#teledox-reset-password-form .teledox-btn-primary {
+    margin-top: 22px;
+}
 .teledox-btn-secondary {
     background: #f7fafc;
     color: #4a5568;
@@ -205,9 +275,8 @@
 
 .teledox-form-footer {
     text-align: center;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
+    margin-top: 0;
+    padding-top: 0;
 }
 
 .teledox-form-footer p {
@@ -217,20 +286,32 @@
 }
 
 .teledox-form-footer a {
-    color: #667eea;
+    color: #000000;
     text-decoration: none;
     font-weight: 600;
-    transition: color 0.3s ease;
+    transition: text-decoration 0.3s ease;
 }
 
 .teledox-form-footer a:hover {
-    color: #5a67d8;
+    color: #000000;
+    text-decoration: underline;
+}
+
+/* All links in login container */
+.teledox-login-container a {
+    color: #000000;
+    text-decoration: none;
+    transition: text-decoration 0.3s ease;
+}
+
+.teledox-login-container a:hover {
+    color: #000000;
     text-decoration: underline;
 }
 
 .teledox-terms {
     text-align: center;
-    margin: 10px 0;
+    margin: 0 0 -12px;
 }
 
 .teledox-terms p {
@@ -241,7 +322,7 @@
 }
 
 .teledox-terms a {
-    color: #667eea;
+    color: #000000;
     text-decoration: none;
     font-weight: 500;
 }
@@ -252,23 +333,12 @@
 
 /* Success and Error Messages */
 .teledox-success-message {
-    background: #f0fff4;
-    border: 1px solid #9ae6b4;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
-
 .teledox-success-message h2 {
-    color: #22543d;
-    margin: 0 0 15px 0;
-}
-
-.teledox-success-message p {
-    color: #2f855a;
-    margin: 0 0 20px 0;
-    line-height: 1.6;
+    margin: 0;
 }
 
 .teledox-error-message {
@@ -320,8 +390,8 @@
 
 /* Form Validation */
 .teledox-form-group.error input {
-    border-color: #e53e3e;
-    box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+    outline: none;
+    box-shadow: none;
 }
 
 .teledox-form-group .error-message {
@@ -355,7 +425,8 @@
     .teledox-form-group input[type="date"],
     .teledox-form-group input[type="password"] {
         padding: 14px 16px;
-        font-size: 16px; /* Prevents zoom on iOS */
+        font-size: 20px; /* Maintains consistent font size across all devices */
+        line-height: 1.1;
     }
 }
 

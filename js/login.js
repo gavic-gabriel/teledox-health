@@ -22,17 +22,16 @@
             const button = $(this);
             const targetId = button.data('target');
             const input = $('#' + targetId);
-            const showText = button.find('.show-text');
-            const hideText = button.find('.hide-text');
+            const icon = button.find('.teledox-eye-icon');
 
             if (input.attr('type') === 'password') {
                 input.attr('type', 'text');
-                showText.hide();
-                hideText.show();
+                icon.addClass('eye-visible');
+                button.attr('aria-label', 'Hide Password');
             } else {
                 input.attr('type', 'password');
-                showText.show();
-                hideText.hide();
+                icon.removeClass('eye-visible');
+                button.attr('aria-label', 'Show Password');
             }
         });
     }
@@ -76,6 +75,12 @@
         $('#teledox-reset-password-form').on('submit', function(e) {
             e.preventDefault();
             handlePasswordReset();
+        });
+
+        // Reset password entry form (when user clicks link from email)
+        $('#teledox-reset-password-entry-form').on('submit', function(e) {
+            e.preventDefault();
+            handlePasswordResetEntry();
         });
 
         // New account form
@@ -171,6 +176,7 @@
             success: function(response) {
                 if (response.success) {
                     // Show success message
+                    $('.teledox-welcome-section').hide();
                     form.hide();
                     $('#teledox-reset-success').show();
                 } else {
@@ -179,6 +185,67 @@
             },
             error: function() {
                 showErrorMessage(teledox_login_ajax.messages.error);
+            },
+            complete: function() {
+                setButtonLoading(submitBtn, false);
+            }
+        });
+    }
+
+    /**
+     * Handle password reset entry form submission
+     */
+    function handlePasswordResetEntry() {
+        const form = $('#teledox-reset-password-entry-form');
+        const submitBtn = form.find('button[type="submit"]');
+        const pass1 = $('#pass1').val();
+        const pass2 = $('#pass2').val();
+        const rpKey = $('input[name="rp_key"]').val();
+        const rpLogin = $('input[name="rp_login"]').val();
+
+        // Validate passwords
+        if (pass1.length < 6) {
+            showErrorMessage('Password must be at least 6 characters long');
+            return;
+        }
+
+        if (pass1 !== pass2) {
+            showErrorMessage('Passwords do not match');
+            return;
+        }
+
+        setButtonLoading(submitBtn, true);
+
+        const formData = {
+            action: 'teledox_reset_password_entry',
+            nonce: teledox_login_ajax.nonce,
+            pass1: pass1,
+            pass2: pass2,
+            rp_key: rpKey,
+            rp_login: rpLogin
+        };
+
+        $.ajax({
+            url: teledox_login_ajax.ajax_url,
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    $('.teledox-welcome-section').hide();
+                    form.hide();
+                    $('.teledox-form-footer').hide();
+                    $('#teledox-reset-success').show();
+                    
+                    // Update success message for password reset completion
+                    $('#teledox-reset-success p').html('<strong>Password Reset Complete!</strong><br/>Your password has been successfully updated. You can now log in with your new password.');
+                    $('#teledox-reset-success a').attr('href', teledox_login_ajax.login_url).text('Log In');
+                } else {
+                    showErrorMessage(response.data || 'Password reset failed. Please try again.');
+                }
+            },
+            error: function() {
+                showErrorMessage('An error occurred. Please try again.');
             },
             complete: function() {
                 setButtonLoading(submitBtn, false);

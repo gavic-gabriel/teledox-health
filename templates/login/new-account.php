@@ -15,7 +15,12 @@ get_header();
 <div class="teledox-login-container">
     <div class="teledox-login-wrapper">
         <div class="teledox-login-form-container">
-            <h1>New Account</h1>
+            <div class="teledox-header-with-back">
+                <button type="button" class="teledox-back-button" onclick="history.back()">
+                    <img src="<?php echo TELEDOX_PLUGIN_URL; ?>/img/icn-back.svg" alt="Back" class="teledox-back-icon">
+                </button>
+                <h1>New Account</h1>
+            </div>
             
             <form id="teledox-new-account-form" class="teledox-form" method="post">
                 <?php wp_nonce_field('teledox_login_nonce', 'nonce'); ?>
@@ -30,8 +35,7 @@ get_header();
                     <div class="teledox-password-input">
                         <input type="password" id="password" name="password" required>
                         <button type="button" class="teledox-password-toggle" data-target="password">
-                            <span class="show-text">👁️</span>
-                            <span class="hide-text" style="display: none;">🙈</span>
+                            <img src="<?php echo TELEDOX_PLUGIN_URL; ?>/img/icn-eye-off.svg" alt="Show Password" class="teledox-eye-icon">
                         </button>
                     </div>
                 </div>
@@ -41,8 +45,7 @@ get_header();
                     <div class="teledox-password-input">
                         <input type="password" id="confirm_password" name="confirm_password" required>
                         <button type="button" class="teledox-password-toggle" data-target="confirm_password">
-                            <span class="show-text">👁️</span>
-                            <span class="hide-text" style="display: none;">🙈</span>
+                            <img src="<?php echo TELEDOX_PLUGIN_URL; ?>/img/icn-eye-off.svg" alt="Show Password" class="teledox-eye-icon">
                         </button>
                     </div>
                 </div>
@@ -77,7 +80,7 @@ get_header();
                 <div class="teledox-form-group">
                     <div class="teledox-terms">
                         <p>By continuing, you agree to<br/>
-                        <a href="#" target="_blank">Terms of Use</a> and <a href="#" target="_blank">Privacy Policy</a>.</p>
+                        <a href="/terms-conditions/" target="_blank">Terms of Use</a> and <a href="/privacy-policy/" target="_blank">Privacy Policy</a>.</p>
                     </div>
                 </div>
                 

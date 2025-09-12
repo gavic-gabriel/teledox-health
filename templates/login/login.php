@@ -15,11 +15,16 @@ get_header();
 <div class="teledox-login-container">
     <div class="teledox-login-wrapper">
         <div class="teledox-login-form-container">
-            <h1>Login</h1>
+            <div class="teledox-header-with-back">
+                <button type="button" class="teledox-back-button" onclick="history.back()">
+                    <img src="<?php echo TELEDOX_PLUGIN_URL; ?>/img/icn-back.svg" alt="Back" class="teledox-back-icon">
+                </button>
+                <h1>Log In</h1>
+            </div>
             
             <div class="teledox-welcome-section">
                 <h2>Welcome</h2>
-                <p>Hey there, welcome to TeleDox!<br/>
+                <p><strong>Hey there, welcome to TeleDox!</strong><br/>
                 We make it easy to get personalized Bioidentical Hormone Replacement Therapy (BHRT) from the comfort of your home. No waiting rooms, just real care. Ready to feel like yourself again? Let's get started!</p>
             </div>
             
@@ -43,25 +48,23 @@ get_header();
                     <div class="teledox-password-input">
                         <input type="password" id="password" name="password" required>
                         <button type="button" class="teledox-password-toggle" data-target="password">
-                            <span class="show-text">👁️</span>
-                            <span class="hide-text" style="display: none;">🙈</span>
+                            <img src="<?php echo TELEDOX_PLUGIN_URL; ?>/img/icn-eye-off.svg" alt="Show Password" class="teledox-eye-icon">
                         </button>
                     </div>
-                    <div class="teledox-form-links">
-                        <a href="<?php echo home_url('/reset-password/'); ?>">Forgot password?</a>
+                    <div class="teledox-remember-forgot-row">
+                        <label class="teledox-checkbox-label">
+                            <input type="checkbox" name="remember" value="1">
+                            <span class="checkmark"></span>
+                            Remember me
+                        </label>
+                        <div class="teledox-form-links">
+                            <a href="<?php echo home_url('/reset-password/'); ?>">Forgot password?</a>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="teledox-form-group">
-                    <label class="teledox-checkbox-label">
-                        <input type="checkbox" name="remember" value="1">
-                        <span class="checkmark"></span>
-                        Remember me
-                    </label>
                 </div>
                 
                 <button type="submit" class="teledox-btn teledox-btn-primary">
-                    <span class="btn-text">Login</span>
+                    <span class="btn-text">Log In</span>
                     <span class="btn-loading" style="display: none;">Please wait...</span>
                 </button>
                 
