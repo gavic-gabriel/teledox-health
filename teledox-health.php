@@ -126,6 +126,13 @@ if (file_exists(dirname(__FILE__) . '/admin/api-settings.php')) {
     msg_teledox_health('API settings file not found', 'error');
 }
 
+if (file_exists(dirname(__FILE__) . '/admin/security-audit.php')) {
+    include_once dirname(__FILE__) . '/admin/security-audit.php';
+    msg_teledox_health('Security audit file loaded successfully', 'plugin');
+} else {
+    msg_teledox_health('Security audit file not found', 'error');
+}
+
 // DrChrono Integration
 if (file_exists(dirname(__FILE__) . '/includes/drchrono-api.php')) {
     include_once dirname(__FILE__) . '/includes/drchrono-api.php';
