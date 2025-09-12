@@ -1,7 +1,7 @@
 <?php
 
 // Version numbers for cache busting
-define('TELEDOX_CSS_VERSION', '1.2.07');
+define('TELEDOX_CSS_VERSION', '1.2.06');
 define('TELEDOX_JS_AJAX_VERSION', '1.0');
 define('TELEDOX_JS_SCRIPTS_VERSION', '1.0.51');
 

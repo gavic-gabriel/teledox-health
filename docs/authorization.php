@@ -29,28 +29,28 @@ There are three main steps in the OAuth 2.0 authentication workflow:
 <ol>
  	<li>Redirect the provider to the authorization page.</li>
  	<li>The provider authorizes your application and is redirected back to your web application.</li>
- 	<li>Your application exchanges the <code>authorization_code</code> that came with the redirect for an <code>access_token</code> and <code>refresh_token</code>.</li>
+ 	<li>Your application exchanges the <code>authorization_code</code> that came with the redirect for an <code>access_token</code> and <code>refresh_token</code>.</li>
 </ol>
 <h3 id="step-1-redirect-to-drchrono">Step 1: Redirect to drchrono</h3>
 The first step is redirecting your user to drchrono, typically with a button labeled "Connect to drchrono" or "Login with drchrono". This is just a link that takes your user to the following URL:
 <pre><code>https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>drchrono<span class="token punctuation">.</span>com<span class="token operator">/</span>o<span class="token operator">/</span>authorize<span class="token operator">/</span><span class="token operator">?</span>redirect_uri<span class="token operator">=</span>REDIRECT_URI_ENCODED<span class="token operator">&amp;</span>response_type<span class="token operator">=</span>code<span class="token operator">&amp;</span>client_id<span class="token operator">=</span>CLIENT_ID_ENCODED<span class="token operator">&amp;</span>scope<span class="token operator">=</span>SCOPES_ENCODED
 </code></pre>
 <ul>
- 	<li><code>REDIRECT_URI_ENCODED</code> is the URL-encoded version of the redirect URI (as registered for your application and used in later steps).</li>
- 	<li><code>CLIENT_ID_ENCODED</code> is the URL-encoded version of your application's client ID.</li>
- 	<li><code>SCOPES_ENCODED</code> is a URL-encoded version of a space-separated list of scopes, which can be found in each endpoint or omitted to default to all scopes.</li>
+ 	<li><code>REDIRECT_URI_ENCODED</code> is the URL-encoded version of the redirect URI (as registered for your application and used in later steps).</li>
+ 	<li><code>CLIENT_ID_ENCODED</code> is the URL-encoded version of your application's client ID.</li>
+ 	<li><code>SCOPES_ENCODED</code> is a URL-encoded version of a space-separated list of scopes, which can be found in each endpoint or omitted to default to all scopes.</li>
 </ul>
-The <code>scope</code> parameter consists of an optional, space-separated list of scopes your application is requesting. If omitted, all scopes will be requested.
+The <code>scope</code> parameter consists of an optional, space-separated list of scopes your application is requesting. If omitted, all scopes will be requested.
 
-Scopes are of the form <code>BASE_SCOPE:[read|write]</code> where <code>BASE_SCOPE</code> is any of <code>user</code>, <code>calendar</code>, <code>patients</code>, <code>patients:summary</code>, <code>billing</code>, <code>clinical</code> and <code>labs</code>. You should request only the scopes you need. For instance, an application which sends "Happy Birthday!" emails to a doctor's patients on their birthdays would use the scope parameter <code>"patients:summary:read"</code>, while one that allows patients to schedule appointments online would need at least <code>"patients:summary:read patients:summary:write calendar:read calendar:write clinical:read clinical:write"</code>.
+Scopes are of the form <code>BASE_SCOPE:[read|write]</code> where <code>BASE_SCOPE</code> is any of <code>user</code>, <code>calendar</code>, <code>patients</code>, <code>patients:summary</code>, <code>billing</code>, <code>clinical</code> and <code>labs</code>. You should request only the scopes you need. For instance, an application which sends "Happy Birthday!" emails to a doctor's patients on their birthdays would use the scope parameter <code>"patients:summary:read"</code>, while one that allows patients to schedule appointments online would need at least <code>"patients:summary:read patients:summary:write calendar:read calendar:write clinical:read clinical:write"</code>.
 <h3 id="step-2-provider-authorization">Step 2: Provider authorization</h3>
-After logging in (if necessary), the provider will be presented with a screen with your application's name and the list of permissions you requested (via the <code>scope</code> parameter).
+After logging in (if necessary), the provider will be presented with a screen with your application's name and the list of permissions you requested (via the <code>scope</code> parameter).
 
-When they click the "Authorize" button, they will be redirected to your redirect URI with a <code>code</code> query parameter appended, which contains an authorization code to be used in step 3. If they click the "Cancel" button, they will be redirected to your redirect URI with <code>error=access_denied</code> instead.
+When they click the "Authorize" button, they will be redirected to your redirect URI with a <code>code</code> query parameter appended, which contains an authorization code to be used in step 3. If they click the "Cancel" button, they will be redirected to your redirect URI with <code>error=access_denied</code> instead.
 
 Note: This authorization code expires extremely quickly, so you must perform step 3 immediately, ideally before rendering the resulting page for the end user.
 <h3 id="step-3-token-exchange">Step 3: Token exchange</h3>
-The <code>code</code> obtained from step 2 is usable exactly once to obtain an access token and refresh token. Here is an example token exchange in Python:
+The <code>code</code> obtained from step 2 is usable exactly once to obtain an access token and refresh token. Here is an example token exchange in Python:
 <pre><code>import datetime<span class="token punctuation">,</span> pytz<span class="token punctuation">,</span> requests
 
 <span class="token keyword">if</span> <span class="token string">'error'</span> <span class="token keyword">in</span> get_params<span class="token punctuation">:</span>
@@ -85,7 +85,7 @@ You now have all you need to make API requests authenticated as that provider. W
 <div class="sc-hKFxyN bmhiuK">
 <div class="sc-iJCRrE sc-ciSkZP ifDxYI dYAYxd redoc-markdown ">
 
-Access tokens only last 48 hours (given in seconds in the <code>'expires_in'</code> key in the token exchange step above), so they occasionally need to be refreshed. It would be inconvenient to ask the user to re-authorize every time, so instead you can use the refresh token like the original authorization to obtain a new access token. Replace the <code>code</code> parameter with <code>refresh_token</code>, change the value <code>grant_type</code> from <code>authorization_code</code> to <code>refresh_token</code>, and omit the <code>redirect_uri</code> parameter.
+Access tokens only last 48 hours (given in seconds in the <code>'expires_in'</code> key in the token exchange step above), so they occasionally need to be refreshed. It would be inconvenient to ask the user to re-authorize every time, so instead you can use the refresh token like the original authorization to obtain a new access token. Replace the <code>code</code> parameter with <code>refresh_token</code>, change the value <code>grant_type</code> from <code>authorization_code</code> to <code>refresh_token</code>, and omit the <code>redirect_uri</code> parameter.
 
 Example in Python:
 <pre><code><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>

@@ -3,17 +3,6 @@ CHANGELOG - TeleDox Health Plugin
 
 Version 1.2.03 (Current)
 ------------------------
-- SECURITY: Enhanced DrChrono API Connection Data Security
-- Implemented enhanced AES-256-CBC encryption with random IV and custom key derivation
-- Added comprehensive access control with user capability checks
-- Implemented automatic connection data expiration and cleanup (30 days)
-- Added comprehensive audit logging for all API operations and security events
-- Created new Security Audit admin page for monitoring and log management
-- Enhanced connection data storage with timestamps and security metadata
-- Added audit log retention management with automatic cleanup
-- Implemented security event monitoring with IP address and user agent tracking
-- Enhanced error handling and logging for encryption/decryption operations
-- Added admin-only access controls for sensitive security functions
 - ENHANCEMENT: Complete Password Reset Flow Implementation
 - Implemented full WordPress password reset integration with custom templates
 - Added dynamic template rendering for reset-password page (email request vs password entry)

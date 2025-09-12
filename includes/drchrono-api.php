@@ -16,8 +16,6 @@ class TeleDox_DrChrono_API {
     private $api_base_url = 'https://app.drchrono.com';
     private $token_url = 'https://drchrono.com/o/token/';
     private $user_id;
-    private $username;
-    private $doctor_id;
     private $connection_data;
     
     public function __construct() {
@@ -26,15 +24,9 @@ class TeleDox_DrChrono_API {
     }
     
     /**
-     * Load connection data (access token, etc.) with enhanced security checks
+     * Load connection data (access token, etc.)
      */
     private function load_connection_data() {
-        // Check if user has permission to access API data
-        if (!$this->has_api_access_permission()) {
-            $this->log_error('User does not have permission to access DrChrono API data');
-            return;
-        }
-        
         // Search for any valid connection data
         global $wpdb;
         $results = $wpdb->get_results("SELECT user_id, meta_value FROM {$wpdb->usermeta} WHERE meta_key = 'teledox_drchrono_connection'");
@@ -42,16 +34,7 @@ class TeleDox_DrChrono_API {
         foreach ($results as $result) {
             $connection_data = maybe_unserialize($result->meta_value);
             if (!empty($connection_data) && isset($connection_data['access_token'])) {
-                // Check if connection data is expired
-                if ($this->is_connection_expired($connection_data)) {
-                    $this->log_error('DrChrono connection data has expired, cleaning up');
-                    $this->cleanup_expired_connection($result->user_id);
-                    continue;
-                }
-                
                 $this->connection_data = $connection_data;
-                $this->user_id = $result->user_id;
-                $this->log_success('DrChrono connection data loaded successfully');
                 break;
             }
         }
@@ -185,16 +168,9 @@ class TeleDox_DrChrono_API {
             $this->connection_data['refresh_token'] = $this->encrypt_data($tokens['refresh_token']);
         }
         
-        // Add timestamp and save updated connection data
-        $this->connection_data = $this->add_connection_timestamp($this->connection_data);
+        // Save updated connection data
         update_user_meta($this->user_id, 'teledox_drchrono_connection', $this->connection_data);
         update_option('teledox_drchrono_connection_' . $this->user_id, $this->connection_data);
-        
-        // Audit log the token refresh
-        $this->audit_log('token_refresh', array(
-            'user_id' => $this->user_id,
-            'timestamp' => time()
-        ));
         
         $this->log_success('Access token refreshed successfully');
         return true;
@@ -244,16 +220,6 @@ class TeleDox_DrChrono_API {
         // Update last used timestamp
         $this->connection_data['last_used'] = time();
         update_user_meta($this->user_id, 'teledox_drchrono_connection', $this->connection_data);
-        
-        // Audit log API request (only for sensitive operations)
-        if (in_array($method, ['POST', 'PUT', 'DELETE', 'PATCH'])) {
-            $this->audit_log('api_request', array(
-                'endpoint' => $endpoint,
-                'method' => $method,
-                'user_id' => $this->user_id,
-                'timestamp' => time()
-            ));
-        }
         
         // Handle rate limiting
         if ($response_code === 429) {
@@ -375,18 +341,10 @@ class TeleDox_DrChrono_API {
         delete_option('teledox_drchrono_username');
         delete_option('teledox_drchrono_doctor_id');
         
-        $disconnected_user_id = $this->user_id;
-        
         $this->connection_data = null;
         $this->user_id = null;
         $this->username = null;
         $this->doctor_id = null;
-        
-        // Audit log the disconnection
-        $this->audit_log('connection_disconnected', array(
-            'user_id' => $disconnected_user_id,
-            'timestamp' => time()
-        ));
         
         $this->log_success('DrChrono connection disconnected');
         
@@ -394,176 +352,21 @@ class TeleDox_DrChrono_API {
     }
     
     /**
-     * Get audit logs for security monitoring (admin only)
-     */
-    public function get_audit_logs($limit = 100) {
-        if (!current_user_can('manage_options')) {
-            return new WP_Error('insufficient_permissions', 'Only administrators can access audit logs');
-        }
-        
-        $audit_logs = get_option('teledox_drchrono_audit_logs', array());
-        return array_slice($audit_logs, -$limit);
-    }
-    
-    /**
-     * Clear old audit logs (admin only)
-     */
-    public function clear_old_audit_logs($keep_days = 90) {
-        if (!current_user_can('manage_options')) {
-            return new WP_Error('insufficient_permissions', 'Only administrators can clear audit logs');
-        }
-        
-        $audit_logs = get_option('teledox_drchrono_audit_logs', array());
-        $cutoff_time = time() - ($keep_days * DAY_IN_SECONDS);
-        
-        $filtered_logs = array_filter($audit_logs, function($log) use ($cutoff_time) {
-            return $log['timestamp'] > $cutoff_time;
-        });
-        
-        update_option('teledox_drchrono_audit_logs', array_values($filtered_logs));
-        
-        $this->log_success("Cleared audit logs older than {$keep_days} days");
-        return true;
-    }
-    
-    /**
-     * Enhanced encryption for sensitive data with random IV and custom key derivation
+     * Simple encryption for sensitive data
      */
     private function encrypt_data($data) {
-        // Create a strong key using multiple WordPress salts and constants
-        $key_material = wp_salt('auth') . AUTH_KEY . wp_salt('secure_auth') . SECURE_AUTH_KEY;
-        $key = hash('sha256', $key_material, true); // Generate 32-byte key
-        
-        // Generate random IV for each encryption
-        $iv = random_bytes(16);
-        
-        // Encrypt the data
-        $encrypted = openssl_encrypt($data, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
-        
-        if ($encrypted === false) {
-            $this->log_error('Encryption failed: ' . openssl_error_string());
-            return false;
-        }
-        
-        // Prepend IV to encrypted data and encode
-        return base64_encode($iv . $encrypted);
+        $key = wp_salt('auth');
+        $iv = wp_salt('secure_auth');
+        return base64_encode(openssl_encrypt($data, 'AES-256-CBC', $key, 0, substr($iv, 0, 16)));
     }
     
     /**
-     * Enhanced decryption for sensitive data with proper IV handling
+     * Simple decryption for sensitive data
      */
     private function decrypt_data($encrypted_data) {
-        // Create the same key as encryption
-        $key_material = wp_salt('auth') . AUTH_KEY . wp_salt('secure_auth') . SECURE_AUTH_KEY;
-        $key = hash('sha256', $key_material, true); // Generate 32-byte key
-        
-        // Decode and extract IV
-        $data = base64_decode($encrypted_data);
-        if ($data === false || strlen($data) < 16) {
-            $this->log_error('Invalid encrypted data format');
-            return false;
-        }
-        
-        $iv = substr($data, 0, 16);
-        $encrypted = substr($data, 16);
-        
-        // Decrypt the data
-        $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
-        
-        if ($decrypted === false) {
-            $this->log_error('Decryption failed: ' . openssl_error_string());
-            return false;
-        }
-        
-        return $decrypted;
-    }
-    
-    /**
-     * Check if current user has permission to access API data
-     */
-    private function has_api_access_permission() {
-        // Allow access for administrators and users with manage_options capability
-        return current_user_can('manage_options') || is_admin();
-    }
-    
-    /**
-     * Check if connection data has expired
-     */
-    private function is_connection_expired($connection_data) {
-        // Default expiration: 30 days
-        $expiry_period = apply_filters('teledox_drchrono_connection_expiry', 30 * DAY_IN_SECONDS);
-        
-        if (!isset($connection_data['created_at'])) {
-            // If no creation timestamp, assume it's old and should be refreshed
-            return true;
-        }
-        
-        $created_at = intval($connection_data['created_at']);
-        $expiry_time = $created_at + $expiry_period;
-        
-        return time() > $expiry_time;
-    }
-    
-    /**
-     * Clean up expired connection data
-     */
-    private function cleanup_expired_connection($user_id) {
-        global $wpdb;
-        
-        // Remove from user meta
-        delete_user_meta($user_id, 'teledox_drchrono_connection');
-        
-        // Remove from options
-        delete_option('teledox_drchrono_connection_' . $user_id);
-        
-        // Log the cleanup action
-        $this->log_success("Cleaned up expired DrChrono connection for user ID: {$user_id}");
-        
-        // Audit log the cleanup
-        $this->audit_log('connection_cleanup', array(
-            'user_id' => $user_id,
-            'reason' => 'expired_connection',
-            'timestamp' => time()
-        ));
-    }
-    
-    /**
-     * Add timestamp to connection data when storing
-     */
-    private function add_connection_timestamp($connection_data) {
-        $connection_data['created_at'] = time();
-        $connection_data['updated_at'] = time();
-        return $connection_data;
-    }
-    
-    /**
-     * Audit logging for security monitoring
-     */
-    private function audit_log($action, $data = array()) {
-        $audit_data = array(
-            'action' => $action,
-            'timestamp' => time(),
-            'user_id' => get_current_user_id(),
-            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-            'data' => $data
-        );
-        
-        // Store audit log (could be in separate table or file)
-        $audit_logs = get_option('teledox_drchrono_audit_logs', array());
-        $audit_logs[] = $audit_data;
-        
-        // Keep only last 1000 audit entries
-        if (count($audit_logs) > 1000) {
-            $audit_logs = array_slice($audit_logs, -1000);
-        }
-        
-        update_option('teledox_drchrono_audit_logs', $audit_logs);
-        
-        // Also log to external logger
-        if (function_exists('msg_teledox_health')) {
-            msg_teledox_health("AUDIT: DrChrono API {$action} - " . json_encode($data), 'drchrono_audit');
-        }
+        $key = wp_salt('auth');
+        $iv = wp_salt('secure_auth');
+        return openssl_decrypt(base64_decode($encrypted_data), 'AES-256-CBC', $key, 0, substr($iv, 0, 16));
     }
     
     /**
